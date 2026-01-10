@@ -1,0 +1,33 @@
+from pyb import Pin
+PC0 = Pin(Pin.cpu.C0, mode=Pin.OUT_PP)
+adc = pyb.ADC(PC0)
+PC1 = Pin(Pin.cpu.C1, mode=Pin.OUT_PP)
+from time import sleep_ms
+PC1.low()
+sleep_ms(10000)
+from array import array
+data = array('H', 1000*[0])
+idx = 0
+VREF = 3.32
+
+def tim_cb(tim):
+    global data, idx
+    if idx <= 500:
+        val = adc.read()
+        data[idx] = val
+        idx += 1
+        PC1.high()
+    else:
+        tim7.callback(None)     # disable the callback
+
+from pyb import Timer
+tim7 = Timer(7, freq=500) 
+sleep_ms(1500)
+tim7.callback(tim_cb)
+
+for idx in range(idx):
+    
+    t = idx/500
+    v = (data[idx] / 4095) * VREF
+    print(f"{idx}, {data[idx]}")
+
