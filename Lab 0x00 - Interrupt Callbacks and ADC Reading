@@ -22,8 +22,8 @@ def tim_cb(tim):
 
 from pyb import Timer
 tim7 = Timer(7, freq=500) 
-sleep_ms(1500)
 tim7.callback(tim_cb)
+sleep_ms(1500)
 
 for idx in range(idx):
     
