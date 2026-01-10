@@ -29,5 +29,4 @@ for idx in range(idx):
     
     t = idx/500
     v = (data[idx] / 4095) * VREF
-    print(f"{idx}, {data[idx]}")
-
+    print(f"{t:.6f}, {v:.6f}")
