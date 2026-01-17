@@ -1,0 +1,109 @@
+import pyb 
+from time import sleep_ms
+
+
+# Right motor pins
+R_PWM_PIN = pyb.Pin('A7')   # Green  (PWM)
+R_DIR     = pyb.Pin('A6', pyb.Pin.OUT_PP)  # Blue   (DIR)
+R_EN      = pyb.Pin('B6', pyb.Pin.OUT_PP)  # Yellow (EN / nSLP)
+
+#Left motor pins
+L_PWM_PIN = pyb.Pin('B7')   # Green  (PWM)
+L_DIR     = pyb.Pin('C13', pyb.Pin.OUT_PP)  # Blue   (DIR)
+L_EN      = pyb.Pin('C14', pyb.Pin.OUT_PP)  # Yellow (EN / nSLP)
+
+
+#--------PWM setup (PA7 = TIM3_CH2)-------
+
+from pyb import Timer
+tim3 = pyb.Timer(3, freq=20000)
+tim4 = pyb.Timer(4, freq=20000)
+R_PWM = tim3.channel(2, pyb.Timer.PWM, pin=R_PWM_PIN)
+L_PWM = tim4.channel(2, pyb.Timer.PWM, pin=L_PWM_PIN)
+
+#-----Additional Timers for Encoders-------
+
+# Right encoder 
+tim_5 = pyb.Timer(5, period = 0xFFFF, prescaler = 0)
+tim_5.channel(1, pin=pyb.Pin('A0'), mode=pyb.Timer.ENC_AB)
+tim_5.channel(2, pin=pyb.Pin('A1'), mode=pyb.Timer.ENC_AB)
+
+# Left encoder
+tim_1 = pyb.Timer(1, period = 0xFFFF, prescaler = 0)
+tim_1.channel(1, pin=pyb.Pin('A8'), mode=pyb.Timer.ENC_AB)
+tim_1.channel(2, pin=pyb.Pin('A9'), mode=pyb.Timer.ENC_AB)
+
+
+
+
+#------------Run motor forwards-----------
+
+R_EN.high()      # enable motor driver
+R_DIR.high()     # set direction (flip to low if backwards)
+R_PWM.pulse_width_percent(40)  # speed (0–100)
+
+L_EN.high()      # enable motor driver
+L_DIR.high()     # set direction (flip to low if backwards)
+L_PWM.pulse_width_percent(40)  # speed (0–100)
+
+sleep_ms(300)
+
+print("Left Forward @ 40% =", tim_1.counter())
+print("Right Forward @ 40% =", tim_5.counter())
+
+
+sleep_ms(5000)
+
+
+R_PWM.pulse_width_percent(70)  # speed (0–100)
+L_PWM.pulse_width_percent(70)  # speed (0–100)
+
+print("Left Forward @ 70% =", tim_1.counter())
+print("Right Forward @ 70% =", tim_5.counter())
+
+sleep_ms(5000)
+
+R_PWM.pulse_width_percent(100)  # speed (0–100)
+L_PWM.pulse_width_percent(100)  # speed (0–100)
+
+print("Left Forward @ 100% =", tim_1.counter())
+print("Right Forward @ 100% =", tim_5.counter())
+
+sleep_ms(5000)
+
+
+#------------Run motor backwards-----------
+
+L_DIR.low()     # set direction (flip to low if backwards)
+L_PWM.pulse_width_percent(40)  # speed (0–100)
+
+R_DIR.low()     # set direction (flip to low if backwards)
+R_PWM.pulse_width_percent(40)  # speed (0–100)
+
+print("Left Backward @ 40% =", tim_1.counter())
+print("Right Backward @ 40% =", tim_5.counter())
+
+sleep_ms(5000)
+
+R_PWM.pulse_width_percent(70)  # speed (0–100)
+L_PWM.pulse_width_percent(70)  # speed (0–100)
+
+print("Left Backward @ 70% =", tim_1.counter())
+print("Right Backward @ 70% =", tim_5.counter())
+
+sleep_ms(5000)
+
+R_PWM.pulse_width_percent(100)  # speed (0–100)
+L_PWM.pulse_width_percent(100)  # speed (0–100)
+
+print("Left Backward @ 100% =", tim_1.counter())
+print("Right Backward @ 100% =", tim_5.counter())
+
+sleep_ms(5000)
+
+#-----stop motors----
+R_PWM.pulse_width_percent(0)
+R_EN.low()
+
+L_PWM.pulse_width_percent(0)
+L_EN.low()
