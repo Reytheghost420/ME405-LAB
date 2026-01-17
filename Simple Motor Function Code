@@ -1,0 +1,36 @@
+import pyb
+
+
+# Right motor pins
+R_PWM_PIN = pyb.Pin('A7')   # Green  (PWM)
+R_DIR     = pyb.Pin('A6', pyb.Pin.OUT_PP)  # Blue   (DIR)
+R_EN      = pyb.Pin('B6', pyb.Pin.OUT_PP)  # Yellow (EN / nSLP)
+
+#Left motor pins
+L_PWM_PIN = pyb.Pin('B7')   # Green  (PWM)
+L_DIR     = pyb.Pin('C13', pyb.Pin.OUT_PP)  # Blue   (DIR)
+L_EN      = pyb.Pin('C14', pyb.Pin.OUT_PP)  # Yellow (EN / nSLP)
+
+# -------------------------
+# PWM setup (PA7 = TIM3_CH2)
+# -------------------------
+tim3 = pyb.Timer(3, freq=20000)
+tim4 = pyb.Timer(4, freq=20000)
+R_PWM = tim3.channel(2, pyb.Timer.PWM, pin=R_PWM_PIN)
+L_PWM = tim4.channel(2, pyb.Timer.PWM, pin=L_PWM_PIN)
+
+# -------------------------
+# Run motor
+# -------------------------
+R_EN.high()      # enable motor driver
+R_DIR.high()     # set direction (flip to low if backwards)
+R_PWM.pulse_width_percent(40)  # speed (0–100)
+
+L_EN.high()      # enable motor driver
+L_DIR.high()     # set direction (flip to low if backwards)
+L_PWM.pulse_width_percent(40)  # speed (0–100)
+
+print("Right motor should be spinning now.")
+
+L_PWM.pulse_width_percent(0)
+L_EN.low()
