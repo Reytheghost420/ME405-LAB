@@ -39,49 +39,70 @@ stop_all()
 sleep_ms(500)
 
 # 2) Enable/disable individually + should not move on enable
-print("\n[TEST 2] Enable motors: should NOT move when enabled (effort=0)")
+print("\n[TEST 2] Enable motors (effort=0)")
 motor_left.enable()
+sleep_ms(500)
 motor_right.enable()
-sleep_ms(300)
+sleep_ms(500)
+motor_left.disable()
+sleep_ms(500)
+motor_right.disable()
+sleep_ms(500)
 
 left_enc.zero()
 right_enc.zero()
-update_and_print("After enable, effort=0 (positions should stay near 0)", loops=8, step_ms=200)
+update_and_print("After enable, effort=0", loops=8, step_ms=200)
 
 # 1) Each motor forward/back independently with varying speed
-print("\n[TEST 1] Right motor only, forward speeds 30 -> 60")
-left_enc.zero(); right_enc.zero()
+print("\n[TEST 1] Right motor only, forwards and backwards")
+left_enc.zero()
+right_enc.zero()
 
 motor_left.set_effort(0)
 motor_right.set_effort(30)
-update_and_print("Right +30 only (R should change, L ~0)", loops=10)
+update_and_print("Right +30 only", loops=10)
 
 motor_right.set_effort(60)
-update_and_print("Right +60 only (R should change faster)", loops=10)
+update_and_print("Right +60 only", loops=10)
 
 motor_right.set_effort(0)
+
+motor_right.set_effort(-30)
+update_and_print("Right -30 only", loops=10)
+
+motor_right.set_effort(-60)
+update_and_print("Right -60 only", loops=10)
 sleep_ms(500)
 
-print("\n[TEST 1] Left motor only, backward speeds -30 -> -60")
-left_enc.zero(); right_enc.zero()
+
+print("\n[TEST 1] Left motor only, forwards and backwards")
+left_enc.zero()
+right_enc.zero()
 
 motor_right.set_effort(0)
+motor_left.set_effort(30)
+update_and_print("Left 30 only", loops=10)
+
+motor_left.set_effort(60)
+update_and_print("Left 60 only", loops=10)
+
 motor_left.set_effort(-30)
-update_and_print("Left -30 only (L should change, R ~0)", loops=10)
+update_and_print("Left -30 only", loops=10)
 
 motor_left.set_effort(-60)
-update_and_print("Left -60 only (L should change faster)", loops=10)
+update_and_print("Left -60 only", loops=10)
 
 motor_left.set_effort(0)
 sleep_ms(500)
 
 # 3) Encoder position grows positive and negative
-print("\n[TEST 3] Both motors forward then backward (positions should go + then -)")
-left_enc.zero(); right_enc.zero()
+print("\n[TEST 3] Both motors forward then backward (Encoder goes + then -)")
+left_enc.zero()
+right_enc.zero()
 
 motor_left.set_effort(40)
 motor_right.set_effort(40)
-update_and_print("Both +40 (positions should increase)", loops=12)
+update_and_print("Both +40", loops=12)
 
 motor_left.set_effort(-40)
 motor_right.set_effort(-40)
@@ -94,7 +115,8 @@ sleep_ms(500)
 # 4) Timer reload doesn't affect speed/position (overflow/underflow handling)
 # Force position near wrap by spinning a bit, then show it stays smooth across wrap.
 print("\n[TEST 4] Overflow/underflow handling (no crazy jump in position)")
-left_enc.zero(); right_enc.zero()
+left_enc.zero()
+right_enc.zero()
 
 motor_left.set_effort(80)
 motor_right.set_effort(80)
