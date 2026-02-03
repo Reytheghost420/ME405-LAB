@@ -1,5 +1,3 @@
-#encoder.py
-
 import pyb
 from time import ticks_us, ticks_diff   # Use to get dt value in update()
 
@@ -42,18 +40,16 @@ class Encoder:
         #handle over flow and under flow
         if delta > (self.period // 2):
             delta -= (self.period + 1)
-        elif delta <- (self.period // 2):
+        elif delta < -(self.period // 2):
             delta += (self.period + 1)
 
         #update stored value of delta 
         self.delta = delta 
-        self.position += delta 
+        self.position -= delta 
         self.dt = ticks_diff(curr_time, self.prev_time)
 
         self.prev_count = curr_count
         self.prev_time = curr_time 
-
-        # Need a pass here? 
             
     def get_position(self):
         '''Returns the most recently updated value of position as determined
@@ -65,7 +61,7 @@ class Encoder:
            value of delta as determined within the update() method'''
         
         if self.dt > 0:
-            return self.delta / self.dt 
+            return -self.delta / self.dt 
         else: 
             return 0
     
@@ -74,7 +70,5 @@ class Encoder:
            to measure with respect to the new zero position'''
         
         self.position = 0
-        self.prev_count = self.time_counter()
-        self.prev_time = tick_us()
-        
-        # Need a pass here?
+        self.prev_count = self.tim.counter()
+        self.prev_time = ticks_us()
