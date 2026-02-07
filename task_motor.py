@@ -21,7 +21,7 @@ class task_motor:
 
     def __init__(self,
                  mot: motor_driver, enc: encoder,
-                 goFlag: Share, dataValues: Queue, timeValues: Queue):
+                 goFlag: Share, dataValues: Queue, timeValues: Queue, KpValue: Queue, KiValue: Queue, setpoint: Queue):
         '''
         Initializes a motor task object
         
@@ -54,6 +54,10 @@ class task_motor:
         
         self._startTime: int    = 0          # The start time (in microseconds)
                                              # for a batch of collected data
+
+        self._KpValue: Queue    = KpValue
+        self._KiValue: Queue    = KiValue
+        self._setpoint: Queue   = setpoint
         
         print("Motor Task object instantiated")
         
@@ -99,13 +103,13 @@ class task_motor:
                 # will replace this with the output of your PID controller that
                 # uses feedback from the velocity measurement.
 
+                setpoint = self._setpoint.get()
                 error = setpoint - speed # We will define setpoint elsewhere
-                Kp = # put proportional gain here, will have to connect it with the user task later
-                self.dt * error #but add it up # get the dt value from encoder driver file and multiply with error to get integral term
-                Ki = # put integral gain here
-
-                a = Kp * error + 
-                #self._mot.set_effort(100 if pos < 0 else -100)
+                Kp = self._KpValue.get()# put proportional gain here, will have to connect it with the user task later
+                Ki = self._KiValue.get()
+                 #but add it up # get the dt value from encoder driver file and multiply with error to get integral term
+                effort = Kp * error + (Ki * t * error)
+                self._mot.set_effort(effort)
                 
                 # Store the sampled values in the queues
                 self._dataValues.put(pos)
