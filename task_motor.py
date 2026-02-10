@@ -60,9 +60,9 @@ class task_motor:
         self._step_applied = False
         self._setpoint = 1500.0 # counts/sec (example step size)
         self._Kp = 0.02
-        self._Ki = 0.0          # start at 0, then increase slowly (ex: 0.001 to 0.02 range)
+        self._Ki = 0.0          
         self._e_int = 0.0
-        self._e_int_max = 50000.0   # anti-windup clamp (tune if needed)
+        
 
         print("Motor Task object instantiated")
         
@@ -123,22 +123,9 @@ class task_motor:
     # --- PI control (start with Ki=0) ---
                 e = ref - vel_cps
                 self._e_int += e * dt_s
-    # anti-windup clamp
-                if self._e_int > self._e_int_max:
-                    self._e_int = self._e_int_max
-                elif self._e_int < -self._e_int_max:
-                   self._e_int = -self._e_int_max
 
                 effort = self._Kp * e + self._Ki * self._e_int
                
-
-    # Clamp effort to valid PWM range (adjust if your driver expects different)
-                if effort > 100:
-                    effort = 100
-                elif effort < -100:
-                    effort = -100
-
-                self._mot.set_effort(effort)
 
     # Store samples every loop (or downsample if you want)
                 if not self._dataValues.full():
