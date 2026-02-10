@@ -9,8 +9,52 @@ S0_INIT = micropython.const(0) # State 0 - initialiation
 S1_CMD  = micropython.const(1) # State 1 - wait for character input
 S2_COL  = micropython.const(2) # State 2 - wait for data collection to end
 S3_DIS  = micropython.const(3) # State 3 - display the collected data
+S4_GET_KP = micropython.const(4)
+S5_GET_KI = micropython.const(5)
+S6_GET_SP = micropython.const(6)
+
 
 UI_prompt = ">: "
+
+def multichar_input(ser, out_share):
+    char_buf = ""
+    digits = set("0123456789")
+    term = {"\r", "\n"}
+    done = False
+
+    while not done:
+        if ser.any():
+            char_in = ser.read(1).decode()
+
+            if char_in in digits:
+                ser.write(char_in)
+                char_buf += char_in
+
+            elif char_in == "." and "." not in char_buf:
+                ser.write(char_in)
+                char_buf += char_in
+
+            elif char_in == "-" and len(char_buf) == 0:
+                ser.write(char_in)
+                char_buf += char_in
+
+            elif char_in == "\x7f" and len(char_buf) > 0:
+                ser.write(char_in)
+                char_buf = char_buf[:-1]
+
+            elif char_in in term:
+                if len(char_buf) == 0:
+                    ser.write("\r\nValue not changed\r\n")
+                    done = True
+
+                elif char_buf not in {"-", "."}:
+                    value = float(char_buf)
+                    out_share.put(value)
+                    ser.write(f"\r\nValue set to {value}\r\n")
+                    done = True
+
+        yield  
+
 
 class task_user:
     '''
@@ -20,7 +64,7 @@ class task_user:
     on the user commands.
     '''
 
-    def __init__(self, leftMotorGo, rightMotorGo, dataValues, timeValues):
+    def __init__(self, leftMotorGo, rightMotorGo, dataValues, timeValues, kp_share, ki_share, sp_share):
         '''
         Initializes a UI task object
         
@@ -51,14 +95,19 @@ class task_user:
         
         self._dataValues: Queue   = dataValues   # A reusable buffer for data
                                                  # collection
-        self.active = None
-        self._active = "L"
-        self._active = "R"
+        self._active = None
+
+        self._kp = kp_share
+        self._ki = ki_share
+        self._sp = sp_share
+        self._subtask = None
+
         
         self._timeValues: Queue   = timeValues   # A reusable buffer for time
                                                  # stamping collected data
         
         self._ser.write("User Task object instantiated")
+
         
     def run(self):
         '''
@@ -68,8 +117,15 @@ class task_user:
         while True:
             
             if self._state == S0_INIT: # Init state (can be removed if unneeded)
-                self._ser.write("Initializing user task\r\n")
-                self._ser.write("Waiting for go command: 'l' for left, 'r' for right\r\n")
+                print("\n")
+                print('+------------------------+')
+                self._ser.write("ME 405 Romi Tuning Interface Help Menu\r\n")
+                print('+------------------------+')
+                self._ser.write("  h   : Print help menu\r\n")
+                self._ser.write("  k   : Enter new gain values\r\n")
+                self._ser.write("  s   : Choose a new setpoint\r\n")
+                self._ser.write("  g   : Trigger step response and print results\r\n")
+                print('+------------------------+')
                 self._ser.write(UI_prompt)
                 self._state = S1_CMD
                 
@@ -81,6 +137,42 @@ class task_user:
                     # If the character is an upper or lower case "l", start data
                     # collection on the left motor and if it is an "r", start
                     # data collection on the right motor
+                    if inChar in {"h", "H"}:
+                        self._ser.write("  h   : Print help menu\r\n")
+                        self._ser.write("  k   : Enter new gain values\r\n")
+                        self._ser.write("  s   : Choose a new setpoint\r\n")
+                        self._ser.write("  g   : Trigger step response and print results\r\n")
+                        self._ser.write(UI_prompt)
+
+                    elif inChar in {"k", "K"}:
+                        self._ser.write(UI_prompt)
+                        self._ser.write("Enter proportional gain, Kp:")
+                        self._subtask = multichar_input(self._ser, self._kp)
+                        self._state = S4_GET_KP
+
+                    elif inChar in {"s", "S"}:
+                        self._ser.write("Enter setpoint:")
+                        self._subtask = multichar_input(self._ser, self._sp)
+                        self._state = S6_GET_SP
+
+                    elif inChar in {"g", "G"}:
+                        if self._active is None:
+                            self._ser.write(
+                                "\r\nSelect motor first (L or R)\r\n"
+                                + UI_prompt
+                            )
+
+                    elif self._active == "L":
+                        self._ser.write("\r\nStarting left motor...\r\n")
+                        self._leftMotorGo.put(True)
+                        self._state = S2_COL
+
+                    elif self._active == "R":
+                         self._ser.write("\r\nStarting right motor...\r\n")
+                         self._rightMotorGo.put(True)
+                         self._state = S2_COL
+
+# keep your existing l/r code as-is
                     if inChar in {"l", "L"}:
                         self._ser.write(f"{inChar}\r\n")
                         self._active = "L"
@@ -108,13 +200,19 @@ class task_user:
                 # ended and it is time to print the collected data.
                 done = (self._active == "L" and not self._leftMotorGo.get()) or \
                        (self._active == "R" and not self._rightMotorGo.get())
+                
+                kp = self._kp.get()
+                ki = self._ki.get()
+                sp = self._sp.get()
 
-                if done:
-                    self._ser.write("Data collection complete...\r\n")
-                    self._ser.write("Printing data...\r\n")
-                    self._ser.write("--------------------\r\n")
-                    self._ser.write("Time_us, Vel_cps\r\n")
-                    self._state = S3_DIS
+                self._ser.write("Data collection complete...\r\n")
+                self._ser.write("Printing data...\r\n")
+                self._ser.write("--------------------\r\n")
+                self._ser.write("Setpoint: {}\r\n".format(sp))
+                self._ser.write("Kp: {}\r\n".format(kp))
+                self._ser.write("Ki: {}\r\n".format(ki))
+                self._ser.write("Time_us, Vel_cps\r\n")
+                self._state = S3_DIS
             
             elif self._state == S3_DIS:
                 # While data remains in the buffer, print that data in a command
@@ -127,5 +225,22 @@ class task_user:
                     self._ser.write("Waiting for go command: 'l' for left, 'r' for right\r\n")
                     self._ser.write(UI_prompt)
                     self._state = S1_CMD
+
+            elif self._state == S4_GET_KP:
+                yield from self._subtask
+                self._ser.write("Enter integral gain, Ki:")
+                self._subtask = multichar_input(self._ser, self._kp)
+                self._state = S5_GET_KI
+
+            elif self._state == S5_GET_KI:
+                yield from self._subtask
+                self._ser.write(UI_prompt)
+                self._state = S1_CMD
+
+            elif self._state == S6_GET_SP:
+                yield from multichar_input(self._ser, self._sp_share)
+                self._ser.write(UI_prompt)
+                self._state = S1_CMD
+
             
             yield self._state

@@ -23,7 +23,7 @@ class task_motor:
 
     def __init__(self,
                  mot: motor_driver, enc: encoder,
-                 goFlag: Share, dataValues: Queue, timeValues: Queue):
+                 goFlag: Share, dataValues: Queue, timeValues: Queue, sp_share: Share ):
         '''
         Initializes a motor task object
         
@@ -53,12 +53,12 @@ class task_motor:
         self._timeValues: Queue = timeValues # A queue object used to store the
                                              # time stamps associated with the
                                              # collected encoder data
+        self._sp_share = sp_share
         
         self._startTime: int    = 0          # The start time (in microseconds)
                                              # for a batch of collected data
 
         self._step_applied = False
-        self._setpoint = 1500.0 # counts/sec (example step size)
         self._Kp = 0.02
         self._Ki = 0.0          
         self._e_int = 0.0
@@ -79,6 +79,7 @@ class task_motor:
                 
             elif self._state == S1_WAIT: # Wait for "go command" state
                 if self._goFlag.get():
+                    self.setpoint = float(self._sp_share.get())
                     # print("Starting motor loop")
                     self._enc.zero() # reset encoder position 
                     self._mot.enable() # enable motor driver 
@@ -110,7 +111,7 @@ class task_motor:
                 t_rel = ticks_diff(now, self._startTime)
 
 # --- Step reference: 0 on first cycle, then setpoint afterwards ---
-                ref = 0.0 if not self._step_applied else float(self._setpoint)
+                ref = 0.0 if not self._step_applied else float(self._sp_share)
                 self._step_applied = True 
 
 

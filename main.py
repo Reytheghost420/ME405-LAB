@@ -18,15 +18,19 @@ rightEncoder = encoder(5, pyb.Pin('A0'), pyb.Pin('A1'))
 # Build shares and queues
 leftMotorGo   = Share("B",     name="Left Mot. Go Flag")
 rightMotorGo  = Share("B",     name="Right Mot. Go Flag")
+kp_share      = Share("f",     name='Kp')
+ki_share      = Share("f",     name='Ki')
+sp_share      = Share('f',     name='Setpoint')
 dataValues    = Queue("f", 30, name="Data Collection Buffer")
 timeValues    = Queue("L", 30, name="Time Buffer")
 
+
 # Build task class objects
 leftMotorTask  = task_motor(leftMotor,  leftEncoder,
-                            leftMotorGo, dataValues, timeValues)
+                            leftMotorGo, dataValues, timeValues, sp_share)
 rightMotorTask = task_motor(rightMotor, rightEncoder,
-                            rightMotorGo, dataValues, timeValues)
-userTask = task_user(leftMotorGo, rightMotorGo, dataValues, timeValues)
+                            rightMotorGo, dataValues, timeValues, sp_share)
+userTask = task_user(leftMotorGo, rightMotorGo, dataValues, timeValues, kp_share, ki_share, sp_share)
 
 # Add tasks to task list
 task_list.append(Task(leftMotorTask.run, name="Left Mot. Task",
