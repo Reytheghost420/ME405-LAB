@@ -2,7 +2,7 @@
     run method implemented as a generator
 '''
 from pyb import USB_VCP
-from task_share import Share, Queue
+from task_share import Share
 import micropython
 
 S0_INIT = micropython.const(0) # State 0 - initialiation
@@ -20,7 +20,7 @@ class task_user:
     on the user commands.
     '''
 
-    def __init__(self, leftMotorGo, rightMotorGo, dataValues, timeValues, KpValue, KiValue, setpoint):
+    def __init__(self, leftMotorGo, rightMotorGo, dataValues, timeValues):
         '''
         Initializes a UI task object
         
@@ -51,13 +51,12 @@ class task_user:
         
         self._dataValues: Queue   = dataValues   # A reusable buffer for data
                                                  # collection
+        self.active = None
+        self._active = "L"
+        self._active = "R"
         
         self._timeValues: Queue   = timeValues   # A reusable buffer for time
                                                  # stamping collected data
-
-        self._KpValue: Queue      = KpValue 
-        self._KiValue: Queue      = KiValue
-        self._setpoint: Queue     = setpoint
         
         self._ser.write("User Task object instantiated")
         
@@ -70,7 +69,7 @@ class task_user:
             
             if self._state == S0_INIT: # Init state (can be removed if unneeded)
                 self._ser.write("Initializing user task\r\n")
-                self._ser.write("Waiting for command: Kp or Ki or setpoint\r\n")
+                self._ser.write("Waiting for go command: 'l' for left, 'r' for right\r\n")
                 self._ser.write(UI_prompt)
                 self._state = S1_CMD
                 
@@ -82,36 +81,21 @@ class task_user:
                     # If the character is an upper or lower case "l", start data
                     # collection on the left motor and if it is an "r", start
                     # data collection on the right motor
-                    if inChar in {"Kp"}:
+                    if inChar in {"l", "L"}:
                         self._ser.write(f"{inChar}\r\n")
-                        self._ser.write("Enter Kp Value")
-                        self._ser.write(UI_prompt)
-                        Kp = self._ser.read(1)
-                        if Kp == int:
-                            self._KpValue.put(Kp)
+                        self._active = "L"
                         self._leftMotorGo.put(True)
                         self._ser.write("Starting left motor loop...\r\n")
                         self._ser.write("Starting data collection...\r\n")
                         self._ser.write("Please wait... \r\n")
                         self._state = S2_COL
-                    elif inChar in {"Ki"}:
+                    elif inChar in {"r", "R"}:
                         self._ser.write(f"{inChar}\r\n")
-                        self._ser.write("Enter Ki Value")
-                        self._ser.write(UI_prompt)
-                        Ki = self._ser.read(1)
-                        if Ki == int:
-                            self._KiValue.put(Ki)
+                        self._active = "R"
                         self._rightMotorGo.put(True)
                         self._ser.write("Starting right motor loop...\r\n")
                         self._ser.write("Starting data collection...\r\n")
                         self._ser.write("Please wait... \r\n")
-                        self._state = S2_COL
-                    elif inChar in {"setpoint"}:
-                        self._ser.write("Enter setpoint value")
-                        self._ser.write(UI_prompt)
-                        setpoint = self._ser.read(1)
-                        if setpoint == int:
-                            self._setpoint.put(setpoint)
                         self._state = S2_COL
                 
             elif self._state == S2_COL:
@@ -122,18 +106,22 @@ class task_user:
                 
                 # When both go flags are clear, the data collection must have
                 # ended and it is time to print the collected data.
-                if not self._leftMotorGo.get() and not self._rightMotorGo.get():
+                done = (self._active == "L" and not self._leftMotorGo.get()) or \
+                       (self._active == "R" and not self._rightMotorGo.get())
+
+                if done:
                     self._ser.write("Data collection complete...\r\n")
                     self._ser.write("Printing data...\r\n")
                     self._ser.write("--------------------\r\n")
-                    self._ser.write("Time, Position\r\n")
+                    self._ser.write("Time_us, Vel_cps\r\n")
                     self._state = S3_DIS
             
             elif self._state == S3_DIS:
                 # While data remains in the buffer, print that data in a command
                 # separated format. Otherwise, the data collection is finished.
                 if self._dataValues.any():
-                    self._ser.write(f"{self._timeValues.get()},{self._dataValues.get()},\r\n")
+                    self._ser.write(f"{self._timeValues.get()},{self._dataValues.get()}\r\n")
+
                 else:
                     self._ser.write("--------------------\r\n")
                     self._ser.write("Waiting for go command: 'l' for left, 'r' for right\r\n")

@@ -1,8 +1,8 @@
-import pyb
+import pyb 
 from time import ticks_us, ticks_diff   # Use to get dt value in update()
 
 
-class Encoder:
+class encoder:
     '''A quadrature encoder decoding interface encapsulated in a Python class'''
 
     def __init__(self, tim, chA_pin, chB_pin):
