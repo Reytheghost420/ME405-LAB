@@ -13,6 +13,18 @@ S4_GET_KP = micropython.const(4)
 S5_GET_KI = micropython.const(5)
 S6_GET_SP = micropython.const(6)
 
+HELP_MENU = (
+"\r\n"
+"\r\n"
+"+----------------------------------------------------------+\r\n"
+"| ME 405 Romi Tuning Interface Help Menu                   |\r\n"
+"+----------------------------------------------------------+\r\n"
+"| h | Print help menu                                      |\r\n"
+"| k | Enter new gain values                                |\r\n"
+"| s | Choose a new setpoint                                |\r\n"
+"| g | Trigger step response and print results              |\r\n"
+"+----------------------------------------------------------+\r\n"
+)
 
 UI_prompt = ">: "
 
@@ -80,6 +92,7 @@ class task_user:
         '''
         
         self._state: int          = S0_INIT      # The present state
+        self._printed_menu = False
         
         self._leftMotorGo: Share  = leftMotorGo  # The "go" flag to start data
                                                  # collection from the left
@@ -117,16 +130,9 @@ class task_user:
         while True:
             
             if self._state == S0_INIT: # Init state (can be removed if unneeded)
-                print("\n")
-                print('+------------------------+')
-                self._ser.write("ME 405 Romi Tuning Interface Help Menu\r\n")
-                print('+------------------------+')
-                self._ser.write("  h   : Print help menu\r\n")
-                self._ser.write("  k   : Enter new gain values\r\n")
-                self._ser.write("  s   : Choose a new setpoint\r\n")
-                self._ser.write("  g   : Trigger step response and print results\r\n")
-                print('+------------------------+')
+                self._ser.write(HELP_MENU)
                 self._ser.write(UI_prompt)
+                self._printed_menu = True
                 self._state = S1_CMD
                 
             elif self._state == S1_CMD: # Wait for UI commands
@@ -138,10 +144,7 @@ class task_user:
                     # collection on the left motor and if it is an "r", start
                     # data collection on the right motor
                     if inChar in {"h", "H"}:
-                        self._ser.write("  h   : Print help menu\r\n")
-                        self._ser.write("  k   : Enter new gain values\r\n")
-                        self._ser.write("  s   : Choose a new setpoint\r\n")
-                        self._ser.write("  g   : Trigger step response and print results\r\n")
+                        self._ser.write(HELP_MENU)
                         self._ser.write(UI_prompt)
 
                     elif inChar in {"k", "K"}:
@@ -248,13 +251,18 @@ class task_user:
                 self._subtask = multichar_input(self._ser, self._ki)
                 self._state = S5_GET_KI
 
+
             elif self._state == S5_GET_KI:
                 yield from self._subtask
                 self._ser.write(UI_prompt)
                 self._state = S1_CMD
 
+
             elif self._state == S6_GET_SP:
                 yield from multichar_input(self._ser, self._sp)
+                self._ser.write(
+                    "Waiting for command: 'l' for left, 'r' for right\r\n"
+                )
                 self._ser.write(UI_prompt)
                 self._state = S1_CMD
 
