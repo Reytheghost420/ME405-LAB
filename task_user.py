@@ -165,11 +165,13 @@ class task_user:
                     elif self._active == "L":
                         self._ser.write("\r\nStarting left motor...\r\n")
                         self._leftMotorGo.put(True)
+                        self._rightMotorGo.put(False)
                         self._state = S2_COL
 
                     elif self._active == "R":
                          self._ser.write("\r\nStarting right motor...\r\n")
                          self._rightMotorGo.put(True)
+                         self._leftMotorGo.put(False)
                          self._state = S2_COL
 
 # keep your existing l/r code as-is
@@ -177,6 +179,7 @@ class task_user:
                         self._ser.write(f"{inChar}\r\n")
                         self._active = "L"
                         self._leftMotorGo.put(True)
+                        self._rightMotorGo.put(False)
                         self._ser.write("Starting left motor loop...\r\n")
                         self._ser.write("Starting data collection...\r\n")
                         self._ser.write("Please wait... \r\n")
@@ -185,6 +188,7 @@ class task_user:
                         self._ser.write(f"{inChar}\r\n")
                         self._active = "R"
                         self._rightMotorGo.put(True)
+                        self._leftMotorGo.put(False)
                         self._ser.write("Starting right motor loop...\r\n")
                         self._ser.write("Starting data collection...\r\n")
                         self._ser.write("Please wait... \r\n")
@@ -194,31 +198,43 @@ class task_user:
                 # While the data is collecting (in the motor task) block out the
                 # UI and discard any character entry so that commands don't
                 # queue up in the serial buffer
-                if self._ser.any(): self._ser.read(1)
+                if self._ser.any(): 
+                    self._ser.read(1)
                 
                 # When both go flags are clear, the data collection must have
                 # ended and it is time to print the collected data.
-                done = (self._active == "L" and not self._leftMotorGo.get()) or \
-                       (self._active == "R" and not self._rightMotorGo.get())
+                done = ((self._active == "L" and not self._leftMotorGo.get()) or 
+                       (self._active == "R" and not self._rightMotorGo.get()))
                 
-                kp = self._kp.get()
-                ki = self._ki.get()
-                sp = self._sp.get()
+                if done: 
+                    kp = self._kp.get()
+                    ki = self._ki.get()
+                    sp = self._sp.get()
 
-                self._ser.write("Data collection complete...\r\n")
-                self._ser.write("Printing data...\r\n")
-                self._ser.write("--------------------\r\n")
-                self._ser.write("Setpoint: {}\r\n".format(sp))
-                self._ser.write("Kp: {}\r\n".format(kp))
-                self._ser.write("Ki: {}\r\n".format(ki))
-                self._ser.write("Time_us, Vel_cps\r\n")
-                self._state = S3_DIS
+                    self._ser.write("Data collection complete...\r\n")
+                    self._ser.write("Printing data...\r\n")
+                    self._ser.write("--------------------\r\n")
+                    self._ser.write("Setpoint: {:.3f} cps\r\n".format(sp))
+                    self._ser.write("Kp: {:.6f} %/cps\r\n".format(kp))
+                    self._ser.write("Ki: {:.6f} %/(cps*s)\r\n".format(ki))
+                    self._ser.write("--------------------------------\r\n")
+                    self._ser.write("Time [s],    Speed [cps]\r\n")
+                    self._state = S3_DIS
+                else:
+                    self._state == S3_DIS
             
             elif self._state == S3_DIS:
                 # While data remains in the buffer, print that data in a command
                 # separated format. Otherwise, the data collection is finished.
                 if self._dataValues.any():
-                    self._ser.write(f"{self._timeValues.get()},{self._dataValues.get()}\r\n")
+                    t_us = self._timeValues.get()
+                    vel = self._dataValues.get()
+
+                    t_sec = t_us / 1_000_000  # convert microseconds to seconds
+
+                    self._ser.write("{:.3f},    {:.3f}\r\n".format(t_sec, vel))
+
+
 
                 else:
                     self._ser.write("--------------------\r\n")
@@ -229,7 +245,7 @@ class task_user:
             elif self._state == S4_GET_KP:
                 yield from self._subtask
                 self._ser.write("Enter integral gain, Ki:")
-                self._subtask = multichar_input(self._ser, self._kp)
+                self._subtask = multichar_input(self._ser, self._ki)
                 self._state = S5_GET_KI
 
             elif self._state == S5_GET_KI:
@@ -238,7 +254,7 @@ class task_user:
                 self._state = S1_CMD
 
             elif self._state == S6_GET_SP:
-                yield from multichar_input(self._ser, self._sp_share)
+                yield from multichar_input(self._ser, self._sp)
                 self._ser.write(UI_prompt)
                 self._state = S1_CMD
 

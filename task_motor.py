@@ -23,7 +23,8 @@ class task_motor:
 
     def __init__(self,
                  mot: motor_driver, enc: encoder,
-                 goFlag: Share, dataValues: Queue, timeValues: Queue, sp_share: Share ):
+                 goFlag: Share, dataValues: Queue, timeValues:Queue, sp_share: Share, 
+                 kp_share: Share, ki_share:Share):
         '''
         Initializes a motor task object
         
@@ -58,11 +59,10 @@ class task_motor:
         self._startTime: int    = 0          # The start time (in microseconds)
                                              # for a batch of collected data
 
+        self._sp_share = sp_share
+        self._kp_share = kp_share
+        self._ki_share = ki_share
         self._step_applied = False
-        self._Kp = 0.02
-        self._Ki = 0.0          
-        self._e_int = 0.0
-        
 
         print("Motor Task object instantiated")
         
@@ -79,6 +79,8 @@ class task_motor:
                 
             elif self._state == S1_WAIT: # Wait for "go command" state
                 if self._goFlag.get():
+                    self._kp = float(self._kp_share.get())
+                    self._ki = float(self._ki_share.get())
                     self.setpoint = float(self._sp_share.get())
                     # print("Starting motor loop")
                     self._enc.zero() # reset encoder position 
@@ -111,7 +113,7 @@ class task_motor:
                 t_rel = ticks_diff(now, self._startTime)
 
 # --- Step reference: 0 on first cycle, then setpoint afterwards ---
-                ref = 0.0 if not self._step_applied else float(self._sp_share)
+                ref = 0.0 if not self._step_applied else float(self._sp_share.get())
                 self._step_applied = True 
 
 
@@ -125,8 +127,15 @@ class task_motor:
                 e = ref - vel_cps
                 self._e_int += e * dt_s
 
-                effort = self._Kp * e + self._Ki * self._e_int
+                effort = self._kp * e + self._ki * self._e_int
                
+               # Saturate to motor_driver’s expected range (usually -100..100)
+                if effort > 100:
+                    effort = 100
+                elif effort < -100:
+                    effort = -100
+
+                self._mot.set_effort(effort)
 
     # Store samples every loop (or downsample if you want)
                 if not self._dataValues.full():

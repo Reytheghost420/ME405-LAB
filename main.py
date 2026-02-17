@@ -27,9 +27,9 @@ timeValues    = Queue("L", 30, name="Time Buffer")
 
 # Build task class objects
 leftMotorTask  = task_motor(leftMotor,  leftEncoder,
-                            leftMotorGo, dataValues, timeValues, sp_share)
+                            leftMotorGo, dataValues, timeValues, sp_share, kp_share, ki_share)
 rightMotorTask = task_motor(rightMotor, rightEncoder,
-                            rightMotorGo, dataValues, timeValues, sp_share)
+                            rightMotorGo, dataValues, timeValues, sp_share, kp_share, ki_share)
 userTask = task_user(leftMotorGo, rightMotorGo, dataValues, timeValues, kp_share, ki_share, sp_share)
 
 # Add tasks to task list
@@ -46,8 +46,7 @@ collect()
 # Run the scheduler until the user quits the program with Ctrl-C
 while True:
     try:
-        task_list.pri_sched()
-        
+        task_list.pri_sched()   
     except KeyboardInterrupt:
         print("Program Terminating")
         leftMotor.disable()
