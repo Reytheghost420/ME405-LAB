@@ -19,12 +19,13 @@ HELP_MENU = (
 "+----------------------------------------------------------+\r\n"
 "| ME 405 Romi Tuning Interface Help Menu                   |\r\n"
 "+----------------------------------------------------------+\r\n"
-"| h | Print help menu                                      |\r\n"
-"| k | Enter new gain values                                |\r\n"
-"| s | Choose a new setpoint                                |\r\n"
-"| g | Trigger step response and print results              |\r\n"
+"|  h  | Print help menu                                    |\r\n"
+"|  k  | Enter new gain values                              |\r\n"
+"|  s  | Choose a new setpoint                              |\r\n"
+"| L/R | Trigger step response and print results            |\r\n"
 "+----------------------------------------------------------+\r\n"
 )
+
 
 UI_prompt = ">: "
 
@@ -241,7 +242,7 @@ class task_user:
 
                 else:
                     self._ser.write("--------------------\r\n")
-                    self._ser.write("Waiting for go command: 'l' for left, 'r' for right\r\n")
+                    self._ser.write(HELP_MENU)
                     self._ser.write(UI_prompt)
                     self._state = S1_CMD
 
@@ -260,9 +261,6 @@ class task_user:
 
             elif self._state == S6_GET_SP:
                 yield from multichar_input(self._ser, self._sp)
-                self._ser.write(
-                    "Waiting for command: 'l' for left, 'r' for right\r\n"
-                )
                 self._ser.write(UI_prompt)
                 self._state = S1_CMD
 
