@@ -123,13 +123,13 @@ class task_motor:
                      dt_s = 1e-6
 
 
-    # --- PI control (start with Ki=0) ---
+    # --- PI control ---
                 e = ref - vel_cps
                 self._e_int += e * dt_s
 
                 effort = self._kp * e + self._ki * self._e_int
                
-               # Saturate to motor_driver’s expected range (usually -100..100)
+               # Saturate to motor_driver’s expected range
                 if effort > 100:
                     effort = 100
                 elif effort < -100:
@@ -152,4 +152,5 @@ class task_motor:
 
                     
             
+
             yield self._state
