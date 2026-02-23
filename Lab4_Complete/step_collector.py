@@ -6,9 +6,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 
 
-# -----------------------
 # USER SETTINGS
-# -----------------------
 
 PORT = "COM3"
 BAUD = 115200
@@ -22,18 +20,10 @@ USE_G = True         # True if you must press 'g' after selecting motor
 LOG_DIR = "Collection Log"
 os.makedirs(LOG_DIR, exist_ok=True)
 
-
-# -----------------------
-# Helper
-# -----------------------
-
 def timestamp():
     return datetime.now().strftime("%m_%d_%H_%M_%S")
 
-
-# -----------------------
 # Main
-# -----------------------
 
 with serial.Serial(PORT, BAUD, timeout=0.2) as ser:
     time.sleep(2)  # allow board reset
@@ -113,13 +103,13 @@ with serial.Serial(PORT, BAUD, timeout=0.2) as ser:
     plt.close()
 
     from pathlib import Path
-# ... earlier LOG_DIR = "Collection Log" ...
+
 LOG_DIR = Path(LOG_DIR)        # convert to Path
 
 # when saving:
 csv_file = LOG_DIR / f"{stamp}.csv"
 png_file = LOG_DIR / f"{stamp}.png"
 
-# Print absolute path so you know where to look
+# Print absolute path
 print("Saved:", csv_file.resolve())
 print("Saved:", png_file.resolve())
