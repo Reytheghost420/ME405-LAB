@@ -138,17 +138,18 @@ class task_motor:
                 self._mot.set_effort(effort)
 
     # Store samples every loop (or downsample if you want)
-                if not self._dataValues.full():
-                    self._timeValues.put(t_rel)
-                    self._dataValues.put(vel_cps)
-           
+# Store samples ONLY in mode 0 (step response / tuning)
+                if mode == 0:
+                    if not self._dataValues.full():
+                        self._timeValues.put(t_rel)
+                        self._dataValues.put(vel_cps)
 
-# --- Stop condition when buffer full ---
-            if self._dataValues.full():
-               self._mot.set_effort(0)
-               self._mot.disable()
-               self._goFlag.put(False)
-               self._state = S1_WAIT
+                    # Stop condition ONLY for step response
+                    if self._dataValues.full():
+                        self._mot.set_effort(0)
+                        self._mot.disable()
+                        self._goFlag.put(False)
+                        self._state = S1_WAIT
 
                     
             

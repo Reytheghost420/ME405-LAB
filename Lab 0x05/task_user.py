@@ -22,8 +22,10 @@ HELP_MENU = (
 "|  h  | Print help menu                                    |\r\n"
 "|  k  | Enter new gain values                              |\r\n"
 "|  s  | Choose a new setpoint                              |\r\n"
-"| L/R | Trigger step response and print results            |\r\n"
-"+----------------------------------------------------------+\r\n"
+"|  l  | Step test LEFT motor (prints data)                 |\r\n"
+"|  r  | Step test RIGHT motor (prints data)                |\r\n"
+"|  f  | Line follow (both motors)                          |\r\n"
+"|  x  | Stop motors                                        |\r\n"
 )
 
 
@@ -171,12 +173,14 @@ class task_user:
                             )
 
                     elif self._active == "L":
+                        self._mode.put(0)
                         self._ser.write("\r\nStarting left motor...\r\n")
                         self._leftMotorGo.put(True)
                         self._rightMotorGo.put(False)
                         self._state = S2_COL
 
                     elif self._active == "R":
+                         self._mode.put(0)
                          self._ser.write("\r\nStarting right motor...\r\n")
                          self._rightMotorGo.put(True)
                          self._leftMotorGo.put(False)
@@ -210,6 +214,7 @@ class task_user:
 
 # keep your existing l/r code as-is
                     if inChar in {"l", "L"}:
+                        self._mode.put(0)
                         self._ser.write(f"{inChar}\r\n")
                         self._active = "L"
                         self._leftMotorGo.put(True)
@@ -219,6 +224,7 @@ class task_user:
                         self._ser.write("Please wait... \r\n")
                         self._state = S2_COL
                     elif inChar in {"r", "R"}:
+                        self._mode.put(0)
                         self._ser.write(f"{inChar}\r\n")
                         self._active = "R"
                         self._rightMotorGo.put(True)

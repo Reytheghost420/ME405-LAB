@@ -31,13 +31,18 @@ timeValues    = Queue("L", 30, name="Time Buffer")
 
 # Build task class objects
 leftMotorTask  = task_motor(leftMotor,  leftEncoder,
-                            leftMotorGo, dataValues, timeValues, left_sp, kp_share, ki_share, mode_share)
+                            leftMotorGo, dataValues, timeValues,
+                            kp_share, ki_share, left_sp, mode_share)
 rightMotorTask = task_motor(rightMotor, rightEncoder,
-                            rightMotorGo, dataValues, timeValues, right_sp, kp_share, ki_share, mode_share)
-userTask = task_user(leftMotorGo, rightMotorGo, dataValues, timeValues, kp_share, ki_share, left_sp, right_sp, mode_share, base_sp)
+                            rightMotorGo, dataValues, timeValues,
+                            kp_share, ki_share, right_sp, mode_share)
+userTask = task_user(leftMotorGo, rightMotorGo, dataValues, timeValues,
+                     kp_share, ki_share, base_sp, left_sp, right_sp, mode_share)
+line_task = task_line(kp_share, ki_share, base_sp,
+                      left_sp, right_sp,
+                      leftMotorGo, rightMotorGo,
+                      mode_share)
 
-line_task = task_line(left_sp, right_sp, base_sp, leftMotorGo, rightMotorGo, kp_share, ki_share, mode_share)
-# Add tasks to task list
 task_list.append(Task(leftMotorTask.run, name="Left Mot. Task",
                       priority = 1, period = 50, profile=True))
 task_list.append(Task(rightMotorTask.run, name="Right Mot. Task",

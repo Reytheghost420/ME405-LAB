@@ -18,7 +18,6 @@ class task_line:
         self._right_go = right_go
         self._mode = mode_share
         self._driver = line_sensor_driver(kp_share, ki_share, base_sp, left_sp, right_sp)
-
         self._state = S0_WAIT
 
 
