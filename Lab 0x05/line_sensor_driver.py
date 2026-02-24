@@ -1,4 +1,4 @@
-from machine import Pin, ADC
+from machine      import Pin, ADC
 from encoder      import encoder
 from task_share   import Share, Queue
 import utime
