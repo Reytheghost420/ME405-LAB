@@ -63,8 +63,11 @@ class line_sensor_driver:
             self.right_sp.put(base_sp)
             return
 
-        kp = float(self.kp_share.get())
-        ki = float(self.ki_share.get())
+        #kp = float(self.kp_share.get())
+        #ki = float(self.ki_share.get())
+        delta_sp = 0.0
+        kp = 100
+        ki = 10
 
         self.e_int += error * dt_s
         delta_sp = kp * error + ki * self.e_int
@@ -74,8 +77,19 @@ class line_sensor_driver:
         if delta_sp >  max_delta: delta_sp =  max_delta
         if delta_sp < -max_delta: delta_sp = -max_delta
 
+
         left_sp  = base_sp + delta_sp
         right_sp = base_sp - delta_sp
+
+        self.left_sp.put(left_sp)
+        self.right_sp.put(right_sp)
+        print("err:", f"{error:.2f}",
+            "kp:", kp,
+            "ki:", ki,
+            "base:", base_sp,
+            "delta:", f"{delta_sp:.2f}",
+            "L:", f"{left_sp:.2f}",
+            "R:", f"{right_sp:.2f}")
 
         self.left_sp.put(left_sp)
         self.right_sp.put(right_sp)
