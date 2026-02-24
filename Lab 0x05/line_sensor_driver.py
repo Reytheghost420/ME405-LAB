@@ -11,6 +11,7 @@ class line_sensor_driver:
         self.base_sp = base_sp
         self.left_sp = left_sp
         self.right_sp = right_sp
+        self.print_count = 0
 
         self.e_int = 0.0
         self.last_t_us = utime.ticks_us()
@@ -53,6 +54,16 @@ class line_sensor_driver:
 
         weights = self.read_sensors()
         error = self.line_centroid(weights)
+        t_sec = now / 1_000_000
+
+        self.print_count += 1
+
+        if self.print_count >= 4:
+            self.print_count = 0
+
+            t_sec = now / 1_000_000
+            print("{:.3f}, {:.3f}".format(t_sec, error))
+
 
         base_sp = float(self.base_sp.get())
 
@@ -72,7 +83,6 @@ class line_sensor_driver:
         self.e_int += error * dt_s
         delta_sp = kp * error + ki * self.e_int
 
-        # Clamp delta so you don't command crazy differential speeds
         max_delta = abs(base_sp)  # simple choice; tune as needed
         if delta_sp >  max_delta: delta_sp =  max_delta
         if delta_sp < -max_delta: delta_sp = -max_delta
@@ -83,13 +93,16 @@ class line_sensor_driver:
 
         self.left_sp.put(left_sp)
         self.right_sp.put(right_sp)
-        print("err:", f"{error:.2f}",
-            "kp:", kp,
-            "ki:", ki,
-            "base:", base_sp,
-            "delta:", f"{delta_sp:.2f}",
-            "L:", f"{left_sp:.2f}",
-            "R:", f"{right_sp:.2f}")
+        
+        #print("err:", f"{error:.2f}",
+              
+            #"kp:", kp,
+            #"ki:", ki,
+            #"base:", base_sp,
+            #"delta:", f"{delta_sp:.2f}",
+            #"L:", f"{left_sp:.2f}",
+            #"R:", f"{right_sp:.2f}"
+            #)
 
         self.left_sp.put(left_sp)
         self.right_sp.put(right_sp)
