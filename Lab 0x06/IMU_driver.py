@@ -3,6 +3,16 @@ import pyb
 
 
 dev_addr = 0x28
+OPR_MODE = 0x3D
+
+# Fusion Modes
+CONFIG_MODE = 0x00
+IMU = 0b1000
+COMPASS = 0b1001
+M4G = 0b1010
+NDOF_FMC_OFF = 0b1011
+NDOF = 0b1100
+
 x_lsb = 0x08 # accelerometer x least significant byte
 x_msb = 0x09 # accelerometer x most significant byte
 y_lsb = 0x0A # accelerometer y least significant byte
@@ -20,7 +30,7 @@ class IMU_driver:
         buf = bytearray(0 for _ in range(6))  # Buffer to hold 6 bytes of data
         myI2C.mem_read(buf, dev_addr, x_lsb)
         acc_x, acc_y, acc_z = struct.unpack('<hhh', buf)  # Unpack the bytes into three 16-bit integers
-        myI2C.mem_write(1,0x28,0x3D)
+        myI2C.mem_write(1,dev_addr,OPR_MODE)
 
         return {
             "x": acc_x,
@@ -28,7 +38,29 @@ class IMU_driver:
             "z": acc_z
         }
     
+    # Code that I'm writing away from the robot
+    def change_operating_mode(self, value):
+        myI2C = self.i2c
+        myI2C.mem_write(value,dev_addr,OPR_MODE)
+
+    def read_calibration_status(self):
+        myI2C = self.i2c
+        calibration_status_byte = bytearray(1)  # Buffer to hold the calibration status byte
+        myI2C.mem_read(calibration_status_byte, dev_addr, 0x35)  # Read calibration status register
+        if calibration_status_byte & 0b11000000 == 0b11000000:
+            print("System is fully calibrated.")
+            return calibration_status_byte[0]
+        else:
+            print("System is not fully calibrated.")
+            return calibration_status_byte[0]
+        
+    def read_calibration_data(self):
+        myI2C = self.i2c
+        calibration_data = bytearray(22)  # Buffer to hold 22 bytes of calibration data
+
+# Testing section
 imu = IMU_driver()
 while True:
+    imu.change_operating_mode(IMU)
     sensor_data = imu.read_sensors()
     print(sensor_data)
