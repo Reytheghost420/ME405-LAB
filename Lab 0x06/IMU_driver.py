@@ -39,27 +39,59 @@ class IMU_driver:
         }
     
     # Code that I'm writing away from the robot
+    # 2
     def change_operating_mode(self, value):
         myI2C = self.i2c
-        myI2C.mem_write(value,dev_addr,OPR_MODE)
+        myI2C.mem_write(value,dev_addr,OPR_MODE)            # Write the chosen operating modme to the OPR_MODE register
 
+    # 3
     def read_calibration_status(self):
         myI2C = self.i2c
         calibration_status_byte = bytearray(1)  # Buffer to hold the calibration status byte
         myI2C.mem_read(calibration_status_byte, dev_addr, 0x35)  # Read calibration status register
-        if calibration_status_byte & 0b11000000 == 0b11000000:
+        if calibration_status_byte & 0b11000000 == 0b11000000:  # Check if the system is fully calibrated (bits 7 and 6 are both 1)
             print("System is fully calibrated.")
-            return calibration_status_byte[0]
+            return calibration_status_byte[0]                   # Return the calibration status byte as an integer
         else:
             print("System is not fully calibrated.")
             return calibration_status_byte[0]
         
+    # 4    
     def read_calibration_data(self):
         myI2C = self.i2c
         calibration_data = bytearray(22)  # Buffer to hold 22 bytes of calibration data
         myI2C.mem_read(calibration_data, dev_addr, 0x55)  # Read calibration data starting from register 0x55
-        return [bin(byte) for byte in calibration_data]
+        return [bin(byte) for byte in calibration_data] # Return calibration data as a list of binary strings
+    
+    # 5 
+    def write_calibration_data(self, calibration_data):
+        myI2C = self.i2c
+        myI2C.mem_write(calibration_data, dev_addr, 0x55)  # Write calibration data starting from register 0x55
 
+    # 6
+    def read_euler_angles(self):
+        myI2C = self.i2c
+        euler_data = bytearray(6)  # Buffer to hold 6 bytes of Euler angle data
+        myI2C.mem_read(euler_data, dev_addr, 0x1A)  # Read Euler angles starting from register 0x1A
+        heading, roll, pitch = struct.unpack('<hhh', euler_data)  # Unpack the bytes into three 16-bit integers
+        return {
+            "heading": heading,     # Read heading angle
+            "roll": roll,       # Read roll angle
+            "pitch": pitch                              
+        }
+
+    # 7
+    def read_angular_velocity(self):
+        myI2C = self.i2c
+        gyro_data = bytearray(6)  # Buffer to hold 6 bytes of gyroscope data
+        myI2C.mem_read(gyro_data, dev_addr, 0x14) # Read gyroscope data starting from register 0x14
+        gyro_x, gyro_y, gyro_z = struct.unpack('<hhh', gyro_data)  # Unpack the bytes into three 16-bit integers
+        return {
+            "gyro_x": gyro_x,       # Read gyroscope x-axis data
+            "gyro_y": gyro_y,       # Read gyroscope y-axis data
+            "gyro_z": gyro_z        # Read gyroscope z-axis data
+        }
+    
 # Testing section
 imu = IMU_driver()
 while True:
