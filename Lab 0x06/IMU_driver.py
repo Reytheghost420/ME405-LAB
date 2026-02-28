@@ -57,6 +57,8 @@ class IMU_driver:
     def read_calibration_data(self):
         myI2C = self.i2c
         calibration_data = bytearray(22)  # Buffer to hold 22 bytes of calibration data
+        myI2C.mem_read(calibration_data, dev_addr, 0x55)  # Read calibration data starting from register 0x55
+        return [bin(byte) for byte in calibration_data]
 
 # Testing section
 imu = IMU_driver()
