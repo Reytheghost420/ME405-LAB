@@ -1,90 +1,310 @@
-from motor_driver  import motor_driver
-from encoder       import encoder
-from task_motor    import task_motor
-from task_user     import task_user
-from task_line     import task_line
-from task_share    import Share, Queue, show_all
-from cotask        import Task, task_list
-from gc            import collect      
-from IMU_driver    import IMU_driver
-from task_observer import task_observer
-import pyb 
-from pyb          import Pin
+''' This file demonstrates an example UI task using a custom class with a
+    run method implemented as a generator
+'''
+from pyb import USB_VCP
+from task_share import Share
+import micropython
 
-imu = IMU_driver()
+S0_INIT = micropython.const(0) # State 0 - initialiation
+S1_CMD  = micropython.const(1) # State 1 - wait for character input
+S2_COL  = micropython.const(2) # State 2 - wait for data collection to end
+S3_DIS  = micropython.const(3) # State 3 - display the collected data
+S4_GET_KP = micropython.const(4)
+S5_GET_KI = micropython.const(5)
+S6_GET_SP = micropython.const(6)
 
-# Build all driver objects first
-leftMotor    = motor_driver(Pin.cpu.B7, Pin.cpu.C13, Pin.cpu.C14, 2, 4)  # TIM4
-rightMotor   = motor_driver(Pin.cpu.A7, Pin.cpu.A6,  Pin.cpu.B6,  2, 3)  # TIM3
-leftEncoder  = encoder(1, pyb.Pin('A8'), pyb.Pin('A9'))
-rightEncoder = encoder(5, pyb.Pin('A0'), pyb.Pin('A1'))
-
-# Build shares and queues
-leftMotorGo   = Share("B",     name="Left Mot. Go Flag")
-rightMotorGo  = Share("B",     name="Right Mot. Go Flag")
-kp_share      = Share("f",     name="Kp")
-ki_share      = Share("f",     name="Ki")
-left_sp       = Share('f',     name="left_sp_share")
-right_sp      = Share("f",     name="right_sp_share")
-mode_share    = Share("i",     name="Mode")
-base_sp       = Share("f",     name="Base Speed")
-dataValues    = Queue("f", 30, name="Data Collection Buffer")
-timeValues    = Queue("L", 30, name="Time Buffer")
-uL_eff        = Share("f", name="uL_effort")
-uR_eff        = Share("f", name="uR_effort")
-
-xhat_s        = Share("f", name="xhat_s")
-xhat_psi      = Share("f", name="xhat_psi")
-xhat_omL      = Share("f", name="xhat_omL")
-xhat_omR      = Share("f", name="xhat_omR")
+HELP_MENU = (
+"\r\n"
+"\r\n"
+"+----------------------------------------------------------+\r\n"
+"| ME 405 Romi Tuning Interface Help Menu                   |\r\n"
+"+----------------------------------------------------------+\r\n"
+"|  h  | Print help menu                                    |\r\n"
+"|  k  | Enter new gain values                              |\r\n"
+"|  s  | Choose a new setpoint                              |\r\n"
+"|  l  | Step test LEFT motor (prints data)                 |\r\n"
+"|  r  | Step test RIGHT motor (prints data)                |\r\n"
+"|  f  | Line follow (both motors)                          |\r\n"
+"|  x  | Stop motors                                        |\r\n"
+"|  o  | Lab 6 info?                                        |\r\n"
+)
 
 
-# Build task class objects
-leftMotorTask  = task_motor(leftMotor,  leftEncoder,
-                            leftMotorGo, dataValues, timeValues,
-                            kp_share, ki_share, left_sp, mode_share)
+UI_prompt = ">: "
 
-rightMotorTask = task_motor(rightMotor, rightEncoder,
-                            rightMotorGo, dataValues, timeValues,
-                            kp_share, ki_share, right_sp, mode_share)
+def multichar_input(ser, out_share):
+    char_buf = ""
+    digits = set("0123456789")
+    term = {"\r", "\n"}
+    done = False
 
-userTask = task_user(leftMotorGo, rightMotorGo, dataValues, timeValues,
-                     kp_share, ki_share, base_sp, left_sp, right_sp, mode_share, 
-                     xhat_s, xhat_psi, xhat_omL, xhat_omR)
+    while not done:
+        if ser.any():
+            char_in = ser.read(1).decode()
 
-line_task = task_line(kp_share, ki_share, base_sp,
-                      left_sp, right_sp,
-                      leftMotorGo, rightMotorGo,
-                      mode_share)
+            if char_in in digits:
+                ser.write(char_in)
+                char_buf += char_in
 
-task_list.append(Task(leftMotorTask.run, name="Left Mot. Task",
-                      priority = 1, period = 50, profile=True))
-task_list.append(Task(rightMotorTask.run, name="Right Mot. Task",
-                      priority = 1, period = 50, profile=True))
-task_list.append(Task(line_task.run, name="Line Follow",
-                      priority=2, period=20))
-task_list.append(Task(userTask.run, name="User Int. Task",
-                      priority = 0, period = 0, profile=False))
-observerTask = task_observer(leftEncoder, rightEncoder, imu,
-                             uL_eff, uR_eff,
-                             xhat_s, xhat_psi, xhat_omL, xhat_omR,
-                             Ts=0.05, r=0.03, Vsup=6.0, ENC_CPR=1440)
-task_list.append(Task(observerTask.run, name="Observer",
-                      priority=2, period=50))
+            elif char_in == "." and "." not in char_buf:
+                ser.write(char_in)
+                char_buf += char_in
 
-# Run the garbage collector preemptively
-collect()
+            elif char_in == "-" and len(char_buf) == 0:
+                ser.write(char_in)
+                char_buf += char_in
 
-# Run the scheduler until the user quits the program with Ctrl-C
-while True:
-    try:
-        task_list.pri_sched()   
-    except KeyboardInterrupt:
-        print("Program Terminating")
-        leftMotor.disable()
-        rightMotor.disable()
-        break
+            elif char_in == "\x7f" and len(char_buf) > 0:
+                ser.write(char_in)
+                char_buf = char_buf[:-1]
 
-print("\n")
-print(task_list)
-print(show_all())
+            elif char_in in term:
+                if len(char_buf) == 0:
+                    ser.write("\r\nValue not changed\r\n")
+                    done = True
+
+                elif char_buf not in {"-", "."}:
+                    value = float(char_buf)
+                    out_share.put(value)
+                    ser.write(f"\r\nValue set to {value}\r\n")
+                    done = True
+
+        yield  
+
+
+class task_user:
+    '''
+    A class that represents a UI task. The task is responsible for reading user
+    input over a serial port, parsing the input for single-character commands,
+    and then manipulating shared variables to communicate with other tasks based
+    on the user commands.
+    '''
+
+    def __init__(self, leftMotorGo, rightMotorGo, dataValues, timeValues, kp_share, ki_share, base_sp, left_sp, right_sp, mode_share,
+                 xhat_s, xhat_psi, xhat_omL, xhat_omR):
+        '''
+        Initializes a UI task object
+        
+        Args:
+            leftMotorGo (Share):  A share object representing a boolean flag to
+                                  start data collection on the left motor
+            rightMotorGo (Share): A share object representing a boolean flag to
+                                  start data collection on the right motor
+            dataValues (Queue):   A queue object used to store collected encoder
+                                  position values
+            timeValues (Queue):   A queue object used to store the time stamps
+                                  associated with the collected encoder data
+        '''
+        
+        self._state: int          = S0_INIT      # The present state
+        self._ser = USB_VCP()                     # A serial port object used to
+                                                 # read character entry and to
+                                                 # print output
+
+        self._printed_menu = False
+        
+        self._leftMotorGo: Share  = leftMotorGo  # The "go" flag to start data
+                                                 # collection from the left
+                                                 # motor and encoder pair
+        
+        self._rightMotorGo: Share = rightMotorGo # The "go" flag to start data
+                                                 # collection from the right
+                                                 # motor and encoder pair
+                                                
+        
+        self._dataValues: Queue   = dataValues   # A reusable buffer for data
+                                                 # collection
+        self._active = None
+
+        self._kp = kp_share
+        self._ki = ki_share
+        self._base_sp = base_sp
+        self._left_sp = left_sp 
+        self._right_sp = right_sp
+        self._mode = mode_share
+        self._subtask = None
+        
+        self._xhat_s   = xhat_s
+        self._xhat_psi = xhat_psi
+        self._xhat_omL = xhat_omL
+        self._xhat_omR = xhat_omR
+        
+ 
+    
+        self._timeValues: Queue   = timeValues   # A reusable buffer for time
+                                                 # stamping collected data
+        
+        self._ser.write("User Task object instantiated")
+
+        
+    def run(self):
+        '''
+        Runs one iteration of the task
+        '''
+        
+        while True:
+            
+            if self._state == S0_INIT: # Init state (can be removed if unneeded)
+                self._ser.write(HELP_MENU)
+                self._ser.write(UI_prompt)
+                self._printed_menu = True
+                self._state = S1_CMD
+                
+            elif self._state == S1_CMD: # Wait for UI commands
+                # Wait for at least one character in serial buffer
+                if self._ser.any():
+                    # Read the character and decode it into a string
+                    inChar = self._ser.read(1).decode()
+                    # If the character is an upper or lower case "l", start data
+                    # collection on the left motor and if it is an "r", start
+                    # data collection on the right motor
+                    if inChar in {"h", "H"}:
+                        self._ser.write(HELP_MENU)
+                        self._ser.write(UI_prompt)
+
+                    elif inChar in {"k", "K"}:
+                        self._ser.write(UI_prompt)
+                        self._ser.write("Enter proportional gain, Kp:")
+                        self._subtask = multichar_input(self._ser, self._kp)
+                        self._state = S4_GET_KP
+
+                    elif inChar in {"s", "S"}:
+                        self._ser.write("Enter base setpoint (cps):")
+                        self._subtask = multichar_input(self._ser, self._base_sp)
+                        self._state = S6_GET_SP
+
+                    elif inChar in {"g", "G"}:
+                        if self._active is None:
+                            self._ser.write(
+                                "\r\nSelect motor first (L or R)\r\n"
+                                + UI_prompt)
+
+                   # ---- Line follow ----
+                    elif inChar in {"f", "F"}:
+                        self._active = None 
+                        self._mode.put(1)
+
+                        self._leftMotorGo.put(True)
+                        self._rightMotorGo.put(True)
+
+                        self._ser.write("\r\nLine follow started (press x to stop)\r\n")
+                        self._ser.write(UI_prompt)
+
+                    # ---- Stop ----
+                    elif inChar in {"x", "X"}:
+                        self._mode.put(0)
+                        self._left_sp.put(0)
+                        self._right_sp.put(0)
+                        self._leftMotorGo.put(False)
+                        self._rightMotorGo.put(False)
+                        self._active = None
+                        self._ser.write("\r\nStopped.\r\n")
+                        self._ser.write(UI_prompt)
+                                            
+
+# keep your existing l/r code as-is
+                    elif inChar in {"l", "L"}:
+                        self._mode.put(0)
+                        self._ser.write(f"{inChar}\r\n")
+                        self._active = "L"
+                        self._leftMotorGo.put(True)
+                        self._rightMotorGo.put(False)
+                        self._ser.write("Starting left motor loop...\r\n")
+                        self._ser.write("Starting data collection...\r\n")
+                        self._ser.write("Please wait... \r\n")
+                        self._state = S2_COL
+
+                    elif inChar in {"r", "R"}:
+                        self._mode.put(0)
+                        self._ser.write(f"{inChar}\r\n")
+                        self._active = "R"
+                        self._rightMotorGo.put(True)
+                        self._leftMotorGo.put(False)
+                        self._ser.write("Starting right motor loop...\r\n")
+                        self._ser.write("Starting data collection...\r\n")
+                        self._ser.write("Please wait... \r\n")
+                        self._state = S2_COL
+
+                    elif inChar in {"o", "O"}:
+                        s = self._xhat_s.get()
+                        psi = self._xhat_psi.get()
+                        omL = self._xhat_omL.get()
+                        omR = self._xhat_omR.get()
+                    # s_hat == how far the robot has traveled forward along path (F = + and R = -)
+                    # psi_hat == robots orientation angle (left = increasing and right = decreasing)
+                    # omL_hat == angle speed of left wheel (turnleft = smaller than right right turn rightlarger than left)
+                        self._ser.write("\r\ns_hat={:.3f}, psi_hat={:.3f}, omL_hat={:.3f}, omR_hat={:.3f}\r\n"
+                                        .format(s, psi, omL, omR))
+                        self._ser.write(UI_prompt)
+                    
+                    else:
+                        self._ser.write('Error. Invalid Input\r\n'
+                        + UI_prompt)
+                
+            elif self._state == S2_COL:
+                # While the data is collecting (in the motor task) block out the
+                # UI and discard any character entry so that commands don't
+                # queue up in the serial buffer
+                if self._ser.any(): 
+                    self._ser.read(1)
+                
+                # When both go flags are clear, the data collection must have
+                # ended and it is time to print the collected data.
+                done = ((self._active == "L" and not self._leftMotorGo.get()) or 
+                       (self._active == "R" and not self._rightMotorGo.get()))
+                
+                if done: 
+                    kp = self._kp.get()
+                    ki = self._ki.get()
+                    sp = float(self._base_sp.get())
+
+                    self._ser.write("Data collection complete...\r\n")
+                    self._ser.write("Printing data...\r\n")
+                    self._ser.write("--------------------\r\n")
+                    self._ser.write("Setpoint: {:.3f} cps\r\n".format(sp))
+                    self._ser.write("Kp: {:.6f} %/cps\r\n".format(kp))
+                    self._ser.write("Ki: {:.6f} %/(cps*s)\r\n".format(ki))
+                    self._ser.write("--------------------------------\r\n")
+                    self._ser.write("Time [s],    Speed [cps]\r\n")
+                    self._state = S3_DIS
+                else:
+                    self._state == S3_DIS
+            
+            elif self._state == S3_DIS:
+                # While data remains in the buffer, print that data in a command
+                # separated format. Otherwise, the data collection is finished.
+                if self._dataValues.any():
+                    t_us = self._timeValues.get()
+                    vel = self._dataValues.get()
+
+                    t_sec = t_us / 1_000_000  # convert microseconds to seconds
+
+                    self._ser.write("{:.3f},    {:.3f}\r\n".format(t_sec, vel))
+
+
+                else:
+                    self._ser.write("--------------------\r\n")
+                    self._ser.write(HELP_MENU)
+                    self._ser.write(UI_prompt)
+                    self._state = S1_CMD
+
+            elif self._state == S4_GET_KP:
+                yield from self._subtask
+                self._ser.write("Enter integral gain, Ki:")
+                self._subtask = multichar_input(self._ser, self._ki)
+                self._state = S5_GET_KI
+
+
+            elif self._state == S5_GET_KI:
+                yield from self._subtask
+                self._ser.write(UI_prompt)
+                self._state = S1_CMD
+
+
+            elif self._state == S6_GET_SP:
+                yield from self._subtask
+                self._ser.write(UI_prompt)
+                self._state = S1_CMD
+
+            
+            yield self._state
