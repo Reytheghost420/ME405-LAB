@@ -116,7 +116,6 @@ class task_observer:
                 self._last_us = now
 
                 # --- Measurements y = [s, psi, OmL, OmR] ---
-                # You MUST adapt these two calls to your encoder class API:
                 # - get_position() should return counts
                 # - get_velocity() returns counts/us in your motor task usage
                 cL = self._encL.get_position()
@@ -196,5 +195,6 @@ class task_observer:
                 self._sL.put(sL)
                 self._sR.put(sR)
                 self._psi_dot.put(psi_dot)
+
 
             yield self._state
