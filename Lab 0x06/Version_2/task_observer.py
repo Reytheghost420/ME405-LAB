@@ -9,9 +9,9 @@ S1_RUN  = micropython.const(1)
 class task_observer:
     def __init__(self, encL, encR, imu,
                  uL_effort_share, uR_effort_share,
-                 xhat_s, xhat_psi, xhat_omL, xhat_omR,
+                 xhat_s, xhat_psi, xhat_omL, xhat_omR, sL, sR, psi_dot,
                  Ts=0.05, r=0.03, Vsup=6.0,
-                 ENC_CPR=1440):
+                 ENC_CPR=1440, log_enable_share=None):
         self._encL = encL
         self._encR = encR
         self._imu  = imu
@@ -28,6 +28,15 @@ class task_observer:
         self.r  = r
         self.Vsup = Vsup
         self.ENC_CPR = ENC_CPR
+
+
+        self._log_share = log_enable_share 
+        self._log_start_us = 0
+        self._prev_log_state = 0
+
+        self._sL = sL
+        self._sR = sR
+        self._psi_dot = psi_dot
 
         # --- Discrete matrices (precomputed for Ts=0.05) ---
         self.Ad = [
@@ -58,6 +67,14 @@ class task_observer:
     def _counts_to_rad(self, counts):
         return (2.0 * math.pi) * (counts / float(self.ENC_CPR))
     
+    def _logging_on(self):
+        if self._log_share is None:
+            return False
+        try:
+            return int(self._log_share.get()) == 1
+        except:
+            return False
+    
     def _cps_to_rads(self, cps):
         return (2.0 * math.pi) * (cps / float(self.ENC_CPR))
 
@@ -87,15 +104,16 @@ class task_observer:
                 except:
                     pass
                 self._last_us = ticks_us()
+
+                if self._logging_on():
+                 print("t_us,sL,sR,psi_meas,psi_dot_meas,xhat_s,xhat_psi,xhat_omL,xhat_omR,uL_eff,uR_eff")
+
                 self._state = S1_RUN
 
             elif self._state == S1_RUN:
                 now = ticks_us()
                 _ = ticks_diff(now, self._last_us)
                 self._last_us = now
-
-                self._encL.update()
-                self._encR.update()
 
                 # --- Measurements y = [s, psi, OmL, OmR] ---
                 # You MUST adapt these two calls to your encoder class API:
@@ -113,6 +131,8 @@ class task_observer:
 
                 psi = self._imu.read_heading_rad()
                 psi = self._unwrap_heading(psi)
+
+                psi_dot = self._imu.read_yaw_rate_rads()
                 
                 vL_cps = self._encL.get_velocity() * 1_000_000
                 vR_cps = self._encR.get_velocity() * 1_000_000
@@ -141,10 +161,34 @@ class task_observer:
 
                 self._x = xnext
 
+                log_state = int(self._log_share.get()) if self._log_share else 0
+
+                    # If logging just turned ON, reset start time
+                if log_state == 1 and self._prev_log_state == 0:
+                    self._log_start_us = now
+
+                self._prev_log_state = log_state
+
+                if log_state == 1:
+                    t_rel = ticks_diff(now, self._log_start_us)
+
+                    uL_eff = float(self._uL_eff.get())
+                    uR_eff = float(self._uR_eff.get())
+                    print("{:d},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f}".format(
+                        t_rel, sL, sR, psi, psi_dot,
+                        self._x[0], self._x[1], self._x[2], self._x[3],
+                        uL_eff, uR_eff))
+                if self._logging_on():
+                     now = ticks_us()
+                     
                 # publish estimates
                 self._xhat_s.put(self._x[0])
                 self._xhat_psi.put(self._x[1])
                 self._xhat_omL.put(self._x[2])
                 self._xhat_omR.put(self._x[3])
+
+                self._sL.put(sL)
+                self._sR.put(sR)
+                self._psi_dot.put(psi_dot)
 
             yield self._state
