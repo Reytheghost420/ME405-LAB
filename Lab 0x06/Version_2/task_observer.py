@@ -106,7 +106,7 @@ class task_observer:
                 self._last_us = ticks_us()
 
                 if self._logging_on():
-                 print("t_us,sL,sR,psi_meas,psi_dot_meas,xhat_s,xhat_psi,xhat_omL,xhat_omR,uL_eff,uR_eff")
+                 print("t_us,sL,sR,psi_meas,psi_dot_meas,xhat_s,xhat_psi,xhat_omL,xhat_omR,omL_meas,omR_meas,uL_eff,uR_eff")
 
                 self._state = S1_RUN
 
@@ -138,6 +138,9 @@ class task_observer:
                 vR_cps = self._encR.get_velocity() * 1_000_000
                 omL = self._cps_to_rads(vL_cps)
                 omR = self._cps_to_rads(vR_cps)
+                omL_meas = omL 
+                omR_meas = omR 
+
 
                 # --- Inputs u: convert effort% to volts ---
                 uL_eff = float(self._uL_eff.get())
@@ -174,9 +177,12 @@ class task_observer:
 
                     uL_eff = float(self._uL_eff.get())
                     uR_eff = float(self._uR_eff.get())
-                    print("{:d},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f}".format(
-                        t_rel, sL, sR, psi, psi_dot,
+                    print("{:d},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f},{:.6f}".format(
+                        t_rel,
+                        sL, sR,
+                        psi, psi_dot,
                         self._x[0], self._x[1], self._x[2], self._x[3],
+                        omL_meas, omR_meas,
                         uL_eff, uR_eff))
                 if self._logging_on():
                      now = ticks_us()
