@@ -55,6 +55,7 @@ class line_sensor_driver:
     def read_raw(self):
         return [adc.read_u16() for adc in self.adc_pins]
     
+    
     # -------------------------------------------------
     # NORMALIZE TO 0..1
     # 0 = white-ish, 1 = black-ish
@@ -115,7 +116,12 @@ class line_sensor_driver:
     def detect_checkpoint(self): # “Are enough sensors dark at once that this looks like a checkpoint/cross marker?”
         weights = self.read_weights()
         black_count = sum(1 for w in weights if w >= self.checkpoint_threshold)
-        return black_count >= self.checkpoint_count
+
+        if black_count >= self.checkpoint_count: #Test 3 temporary
+                                                 # Confirm CP markers trigger
+                                                 # if too sensitive increate checkpoint threshold or checkpoint count 
+
+            return black_count >= self.checkpoint_count
 
     # -------------------------------------------------
     # MAIN LINE FOLLOW CONTROLLER
@@ -127,7 +133,31 @@ class line_sensor_driver:
         dt_s = max(dt_us / 1_000_000.0, 1e-6)
 
         weights = self.read_weights()
+
+        self.print_count += 1 #Temporary, just to make sure readings are good
+
+        if self.print_count >= 10:
+            self.print_count = 0
+
+            print(["{:.2f}".format(w) for w in weights])
+            # example output   
+            # left sensors           center       right sensors
+            #      ↓                    ↓               ↓
+            #      [0.02, 0.05, 0.20, 0.85, 0.30, 0.05, 0.01]
+
+            print("line seen:", self.line_seen()) # should see that on white floor, line seen:false 
+                                                  # when robot touches line, line seen: True
+                                                  # can remove all test prints if needed, helps with control loop speed 
+
+        
+
         error = self.line_centroid(weights)
+        print("error:", error) #Test 2 (confirm robot steers toward line)
+                               # negative = line left 
+                               # positive = line right 
+                               # line right -> robot turns right
+                               # line left  -> turns left
+                               # if steering backwards, switch left_cmd and right_cmd positive and negative 
 
         base_sp = float(self.base_sp.get())
 
@@ -159,3 +189,15 @@ class line_sensor_driver:
 
         self.left_sp.put(left_cmd)
         self.right_sp.put(right_cmd)
+
+        # -------------------------------------------------
+        # TESTS #1 
+        # -------------------------------------------------
+
+    def debug_raw(self): # This part is to test whether black gives higher or lower ADC values 
+                         # use this to change INVERT or leave alone
+
+        raw = self.read_raw()
+        print("RAW:", raw)
+
+        
