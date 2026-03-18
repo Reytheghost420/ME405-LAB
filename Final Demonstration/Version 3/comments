@@ -1,0 +1,5 @@
+It's not super reliable yet but with the cord connected it can get to the garage, turn inside, and detect the wall.
+I also got the blue user button to work so that we don't have to keep romi plugged in during the course run. 
+Whenever I use the button to start it, though, it is less reliable.
+    Sometimes the motors move a lot when starting the course which causes the robot to immediately lose the line.
+    Sometimes in the garage it never stops turning right when it enters.
