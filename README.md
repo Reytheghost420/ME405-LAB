@@ -22,7 +22,10 @@ After this, our ultrasonic sensor is turned on while the robot drives straight t
 
 Then, the robot turns right 90 degrees to orient itself on the slalom line. The line sensor is turned on and that guides the robot until checkpoints #3 and #4 are detected.
 
-Our team opted 
+Our team opted not to try and knock the cups out of place for the time bonus in order to dedicate our time to completing the track reliably.
+
+#### Video Demonstration
+
 
 
 ### Sensors
