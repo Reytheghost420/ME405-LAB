@@ -11,6 +11,23 @@ It then turns right 90 degrees based on heading data from the IMU.
 After this, our ultrasonic sensor is turned on while the robot drives straight towards the wall. Once the sensor reaches the predetermined distance of 11cm from the wall, the robot initiates its 90 degree turn left.
 
 
+### Sensors
+#### Infrared Sensor
+Our sensor is the Pololu QTRX analog sensor. It works by emitting infrared light at the ground and detecting how much light it receives back. At 8mm wide and containing 7 channels, we found it adequate to detect the line and the adjacent white space.
+
+The pins used on our sensor are the VCC, GND, and pins 1, 3, 5, 7, 9, 11, and 13. We soldered right angle male-male pin headers to the sensor to allow for easy connecting to our board.
+
+Link: https://www.pololu.com/product/4447
+
+<img width="600" height="480" alt="image" src="https://github.com/user-attachments/assets/e28aa20e-13dd-4136-b484-7a4b8ed291f7" />
+
+#### Ultrasonic Sensor
+Our sensor is the HC-SR04, a common sensor included in many electronics kits. It sends out a high frequency noise and records how long it takes to receive an echo from the noise. The sensor is mounted slightly behind the front of the robot, since accuracy is greatly reduced at distances of under 2cm.
+
+<img width="591" height="396" alt="image" src="https://github.com/user-attachments/assets/ec2562e6-3d96-42e8-8285-f65d674b5d3d" />
+
+
+
 ### Wiring Diagram
 This diagram displays the connections between our Nucleo board, motors, encoders, IMU, IR sensor, and Ultrasonic Sensor
 
@@ -20,9 +37,7 @@ This diagram displays the connections between our Nucleo board, motors, encoders
 #### Infrared Sensor Mount
 This mount was created to secure our infrared sensor to the Romi chassis. It keeps the face of the sensor 7cm above the track, which is within the optimal range for the sensor.
 2 #2 screws and 2 #2 nuts are used to attach the mount to the chassis and 2 #2 screws attach the sensor to the mount. Those holes in the mount are tapped by the screws themselves and do not require nuts.
-Our sensor is 8mm wide and has 7 channels, which we found adequate to detect the line and the adjacent white space.
 
-Link: https://www.pololu.com/product/4447
 
 [Infrared Sensor Mount v1.pdf](https://github.com/user-attachments/files/26132131/Infrared.Sensor.Mount.v1.pdf)
 
@@ -32,5 +47,7 @@ This mount was created to attach our ultrasonic sensor to the Romi chassis. It i
 This is due to us not having small enough screws to fit through the holes on the ultrasonic sensor.
 The mount was originally intended to connect to the chassis on both sides of the suspension ball, but the IMU sensor occupies the chassis space that the ultrasonic 
 sensor mount would otherwise take.
+
+Both mounts were created in Fusion 360 using pubilcly available CAD models of the Romi chassis, infrared sensor, and ultrasonic sensor.
 
 [Ultrasonic Sensor Mount Drawing v1.pdf](https://github.com/user-attachments/files/26132134/Ultrasonic.Sensor.Mount.Drawing.v1.pdf)
