@@ -34,6 +34,10 @@ Our team opted not to try and knock the cups out of place for the time bonus in 
 #### Video Demonstration
 
 
+https://github.com/user-attachments/assets/57b410ec-e20e-4d8b-ae99-a271f1de9f0f
+
+
+
 
 ### Sensors
 #### Infrared Sensor
