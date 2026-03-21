@@ -31,10 +31,3 @@ if __name__ == "__main__":
             print("Error: {}".format(distance))
 
         utime.sleep_ms(100)
-
-        #Before using it in the garage state, run the standalone test at the bottom and verify: 
-        # far away wall → larger number
-        # closer wall/hand → smaller number
-        # readings are reasonably stable
-        # at about 7 cm it reads near your threshold
-        # If the readings jump too much, you can later average 2–3 readings, but first just get the basic pulse fixed.
