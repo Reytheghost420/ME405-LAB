@@ -1,0 +1,24 @@
+## Known Issues and Possible Improvements
+
+Although the robot is able to complete the course and demonstrate the intended behaviors, there are still a few areas where performance may vary between runs. 
+Most of these issues are related to tuning and real-world variability rather than fundamental problems in the code structure.
+
+One issue that may appear during the garage section is that the robot does not always drive perfectly straight toward the wall after turning 90 degrees in the garage. 
+In some runs, one wheel may drive slightly faster than the other, causing the robot to drift or begin turning when it should continue straight. 
+This is likely due to small differences in motor performance, friction, or battery level. If this occurs, the wheel speed commands used during the garage-turning portion of the state machine should be adjusted. 
+These values are located in `task_course.py`, in the section that handles straight motion through the garage. Small changes to the left and right motor setpoints can significantly improve straight-line behavior.
+
+Another issue that may occur is that the robot sometimes begins its turn at the middle of the cross feature instead of waiting until it reaches the tip. This can cause the robot to turn too early and miss the intended path. 
+This behavior is likely related to how the line sensors detect the thick line or cross marking and how the state transition is triggered in `task_course.py`. If this issue appears, the transition condition may need to be made more strict. 
+For example, the robot may benefit from waiting slightly longer, checking encoder distance before turning, or requiring a stronger sensor threshold before switching states. However, this is a rare occurance. So a simple restart can fix it.
+
+In addition, the robot may occasionally overshoot thicker lines or lose the line briefly during sharp transitions. This is a common issue in line-following systems when sensor readings change rapidly. 
+While a recovery behavior (such as a sweep search) can help reacquire the line, further improvements could include refining sensor weighting, adjusting control gains, or slowing the robot slightly during critical sections of the course.
+
+From a control perspective, the current implementation prioritizes simplicity and responsiveness, but it could be improved by further tuning of proportional and integral gains. 
+For exmaple having a seperate set of kp and ki values for the curvy part of the track would help the romi drive straighter and smoother at the beginning of the session, instead of being jerky/wobbly throughout the whole course.
+
+Finally, while the finite state machine structure is effective, it relies on carefully tuned transition conditions. If transitions occur too early or too late, the robot may enter the wrong behavior. 
+
+Overall, these issues are relatively minor and are typical of real-world embedded robotics systems. The modular structure of the code, particularly within `task_course.py`, allows for targeted adjustments without requiring major redesign. 
+With additional tuning and testing, the robot’s performance could be made more consistent and reliable across all runs.
