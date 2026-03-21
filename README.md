@@ -86,14 +86,23 @@ Our line sensor also does the job of detecting checkpoints on the game track by 
 ### Game Track
 <img width="5139" height="2554" alt="Game_Track" src="https://github.com/user-attachments/assets/2d694fcd-8b26-4c78-93bf-3edc1c199b14" />
 
-Our Romi uses its line sensor to guide its motion starting at Checkpoint 0. It then detects it has reached Checkpoint 1 with the line sensor and continues using the line sensor for the arc after #1.
-It then turns right 90 degrees based on heading data from the IMU.
+Our Romi uses its line sensor to guide its motion starting at Checkpoint 0. At startup, the robot enters a line-following state where it continuously reads values from the infrared sensor array. These values are normalized using previously collected calibration data and converted into a position error relative to the center of the line. A proportional-integral (PI) control scheme is then used to adjust the left and right motor speeds, allowing the robot to remain centered on the line while moving forward.
 
-After this, our ultrasonic sensor is turned on while the robot drives straight towards the wall. Once the sensor reaches the predetermined distance of 11cm from the wall, the robot initiates its turn left while turning on the line sensor to look for the line. Once the line is detected, the robot moves straight on the line until both the cross and checkpoint #2 are detected.
+As the robot progresses along the initial straight path, it monitors the sensor readings for a checkpoint condition. Checkpoint 1 is detected when multiple sensors simultaneously register the darker region associated with the checkpoint marker. Upon detecting CP#1, the robot remains in line-following mode but begins navigating the curved arc section of the track. The continuous feedback from the line sensor allows the robot to smoothly follow the curvature without requiring a predefined path.
 
-Then, the robot turns right 90 degrees to orient itself on the slalom line. The line sensor is turned on and that guides the robot until checkpoints #3 and #4 are detected.
+After completing the arc, the robot transitions to a turning state. At this point, the line sensor is temporarily deprioritized and the robot uses heading data from the IMU to execute a right 90-degree turn. The IMU provides orientation feedback, allowing the robot to rotate to a target heading with improved accuracy compared to open-loop turning.
 
-Our team opted not to try and knock the cups out of place for the time bonus in order to dedicate our time to completing the track reliably.
+Once aligned with the next section, the robot enters the garage approach state. In this state, the ultrasonic sensor is activated and the robot drives forward in a controlled manner toward the wall. The ultrasonic sensor continuously measures the distance to the wall, and when the measured distance reaches approximately 11 cm, the robot initiates a left turn. This turn is performed while re-enabling the line sensor so that the robot can search for and reacquire the line during the maneuver.
+
+After the line is detected again, the robot transitions back into line-following mode. As it moves forward, it encounters a cross feature on the track. This feature is detected when several adjacent sensors simultaneously read black, indicating a wide line region rather than a standard narrow line. This condition is used to trigger the next transition. Shortly after the cross, Checkpoint 2 is detected using a similar sensor-based threshold.
+
+Following CP#2, the robot performs another right 90-degree turn using IMU heading feedback to align itself with the slalom section of the course. Once aligned, the robot re-enters line-following mode and navigates the curved slalom path using continuous sensor feedback. The oscillating path requires constant correction, and the PI controller adjusts motor speeds dynamically to maintain stability and minimize overshoot.
+
+During this final section, the robot continues to monitor for checkpoint conditions. Checkpoints 3 and 4 are detected sequentially as the robot progresses through the slalom. Detection of the final checkpoint signals the completion of the course.
+
+All of these behaviors are coordinated using a finite state machine implemented in `task_course.py`. Each section of the course corresponds to a specific state, such as line following, turning, wall approach, or line reacquisition. Transitions between states are triggered using a combination of sensor thresholds, IMU heading data, and, where applicable, timing or distance-based conditions. This structured approach ensures that each part of the course is handled predictably and allows for targeted tuning of individual behaviors.
+
+To improve reliability, the system prioritizes consistent execution over optional scoring features. Our team chose not to attempt the cup interaction in order to reduce variability and ensure successful completion of the primary course. This decision allowed more time to be spent refining line-following performance, sensor thresholds, and state transitions, resulting in a more robust overall system.
 
 #### Video Demonstrations
 
