@@ -122,7 +122,7 @@ The robot successfully completed the full course outside of the final demonstrat
 - cross detection and continued tracking
 - slalom navigation
 
-We were not able to get the robot to consistently complete the course in time for the final demonstration, as errors would sometimes arise that derailed our runs.
+We were not able to get the robot to consistently complete the course in time for the final demonstration, as errors would sometimes arise that derailed our runs. For all 3 in class runs, the robot turned left after reversing out of checkpoint #4 when it should have gone right.
 
 ##### In Class Demonstration
 
