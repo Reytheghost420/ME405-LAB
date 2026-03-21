@@ -30,6 +30,7 @@ To recreate this system, the following hardware components were used:
 - Custom **3D printed mounts** for IR and ultrasonic sensors
 - Jumper wires and header pins for connections
 - External power source (6 1.2V NiMH rechargeable batteries)
+- Various screws for attaching mounts to the chassis
 
 ---
 
