@@ -31,13 +31,20 @@ Then, the robot turns right 90 degrees to orient itself on the slalom line. The 
 
 Our team opted not to try and knock the cups out of place for the time bonus in order to dedicate our time to completing the track reliably.
 
-#### Video Demonstration
+#### Video Demonstrations
 
-
+##### Working Test Course
 https://github.com/user-attachments/assets/57b410ec-e20e-4d8b-ae99-a271f1de9f0f
 
+Full Resolution Link: https://youtu.be/C_g4VvyhMvY
 
 
+##### In Class Demonstration
+
+
+https://github.com/user-attachments/assets/51b756b1-f9b8-4bad-b1de-43f78a5d53f9
+
+Full Resolution Link: https://youtu.be/82ImlZlA_gw
 
 ### Sensors
 #### Infrared Sensor
