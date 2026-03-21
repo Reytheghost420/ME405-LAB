@@ -42,9 +42,9 @@ To recreate this system, the following hardware components were used:
 ---
 
 ### Calibration
-- Run `calibration.py` to collect black/white values for the line sensors  
+- Run `calibration.py` to collect coefficients for the IMU
 - Calibration values are stored in `calibration.txt`
-- Proper calibration is required for reliable line detection
+- Proper calibration is required for reliable accelerometer, gyroscope, and magnetometer performance in the IMU.
 
 ---
 
