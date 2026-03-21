@@ -74,7 +74,7 @@ Optional:
 ### Drivers
 
 #### Motor Driver
-This driver sets up the pin objects for the sleep and direction pins and a timer object for the PWM pin.
+This driver sets up the pin objects for the sleep and direction pins and a timer object for the PWM pin. The set effort section controls the direction of the motor and the pulse width percent of the PWM signal.
 
 #### Line Sensor Driver
 Our driver reads the 16 bit values of the pins on each channel and assigns each a position value based on the channel's distance away from the center of the sensor. From left to right, this looks like (-3, -2, -1, 0, 1, 2, 3). The raw 16 bit value is normalized between 0 and 1 based on previous calibration data of black and white track surfaces. The normalized sensor values are multiplied with the respective position values. This product is then added up and then divided by the sum of all normalized sensor values to give an error that tells the robot where it is in relation to the center of the line.
