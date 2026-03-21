@@ -91,7 +91,7 @@ Our Romi uses its line sensor to guide its motion starting at Checkpoint 0. At s
 
 As the robot progresses along the initial straight path, it monitors the sensor readings for a checkpoint condition. Checkpoint 1 is detected when multiple sensors simultaneously register the darker region associated with the checkpoint marker. Upon detecting CP#1, the robot remains in line-following mode but begins navigating the curved arc section of the track. The continuous feedback from the line sensor allows the robot to smoothly follow the curvature without requiring a predefined path.
 
-After completing the arc, the robot transitions to a turning state. At this point, the line sensor is temporarily deprioritized and the robot uses heading data from the IMU to execute a right 90-degree turn. The IMU provides orientation feedback, allowing the robot to rotate to a target heading with improved accuracy compared to open-loop turning.
+After completing the arc, the robot transitions to a turning state. At this point, the line sensor is temporarily deprioritized and the robot uses set efforts and time based operations to make a 90 segree turn before driving straight for the wall. 
 
 Once aligned with the next section, the robot enters the garage approach state. In this state, the ultrasonic sensor is activated and the robot drives forward in a controlled manner toward the wall. The ultrasonic sensor continuously measures the distance to the wall, and when the measured distance reaches approximately 11 cm, the robot initiates a left turn. This turn is performed while re-enabling the line sensor so that the robot can search for and reacquire the line during the maneuver.
 
