@@ -71,6 +71,16 @@ https://github.com/user-attachments/assets/51b756b1-f9b8-4bad-b1de-43f78a5d53f9
 
 Full Resolution Link: https://youtu.be/82ImlZlA_gw
 
+## Known Issues and Improvements
+
+While the robot successfully completes the course, some behaviors may require additional tuning:
+
+- During the garage section, the robot may drift slightly due to small differences in motor speed. This can be corrected by adjusting motor setpoints in `task_course.py`.
+- The robot may occasionally begin turning at the middle of the cross instead of at the tip. This is due to early state transitions based on sensor readings. Adjusting thresholds or adding encoder-based checks can improve this behavior.
+- Performance may vary depending on surface conditions, lighting, and battery level.
+
+These issues are primarily tuning-related and can be improved without changing the overall system design.
+
 ### Sensors
 #### Infrared Sensor
 Our sensor is the Pololu QTRX analog sensor. It works by emitting infrared light at the ground and detecting how much light it receives back. At 8mm wide and containing 7 channels, we found it adequate to detect the line and the adjacent white space.
