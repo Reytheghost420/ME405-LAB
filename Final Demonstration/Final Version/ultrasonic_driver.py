@@ -8,7 +8,6 @@ class ultrasonic_driver:
         self.echo = Pin(echo, Pin.IN)
 
     def get_distance_cm(self):
-        # 10 us trigger pulse
         self.trig.low()
         self.trig.high()
         utime.sleep_us(2)
