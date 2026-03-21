@@ -1,4 +1,7 @@
 # ME 405 Romi Project
+![IMG_7961](https://github.com/user-attachments/assets/eb505301-c711-4a1e-8665-e76e7620c3a9)
+
+
 ## Final Code Location
 
 The final working implementation of the Romi robot can be found in:
