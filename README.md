@@ -113,7 +113,7 @@ Full Resolution Link: https://youtu.be/C_g4VvyhMvY
 
 ## Final Performance
 
-The robot successfully completed the full course, including:
+The robot successfully completed the full course outside of the final demonstration, including:
 - straight line tracking
 - checkpoint detection
 - arc navigation after CP#1
@@ -122,8 +122,7 @@ The robot successfully completed the full course, including:
 - cross detection and continued tracking
 - slalom navigation
 
-The system demonstrated consistent performance across multiple runs, with only minor variation due to mechanical differences and sensor noise.
-
+We were not able to get the robot to consistently complete the course in time for the final demonstration, as errors would sometimes arise that derailed our runs.
 
 ##### In Class Demonstration
 
