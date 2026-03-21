@@ -1,0 +1,87 @@
+# Final Demonstration
+
+## Repository Notes
+The final working code for the robot is contained in this section of the repository. Earlier labs and development versions were retained separately, but this folder contains the finalized demonstration code used for the completed project.
+
+Additional documentation, images, and demonstration material are included in the "Final Version Folder" in the repository to show the development process and final results.
+
+## Project Overview
+This project is the final implementation of a Romi robot designed to complete a line-following course using sensor feedback, motor control, and finite-state-machine logic. The robot was developed with skills we learned throughout the quarter and refined into a final working system 
+capable of navigating the course with minimal user interaction after launch.
+
+The final code combines all major components of the project into one integrated system. These components include motor actuation, encoder feedback, line sensor processing, proportional control, and high-level navigation logic. 
+Together, they allow the robot to detect the path, follow it, respond to course features, and complete the final demonstration route.
+
+---
+
+## What the Final Code Does
+The final code controls the robot from startup through course completion. Once started, the robot reads data from its line sensors to detect its position relative to the path. Based on this sensor data, the control system adjusts the speed of the left and right motors 
+so the robot stays centered on the line.
+
+In addition to basic line following, the final code also handles larger course events using a finite state machine. Rather than treating the whole run as one continuous behavior, the program is divided into states that each correspond to a specific part of the course. 
+For example, the robot begins by following the main line, then transitions through checkpoints, arc motion, turns, and recovery behaviors as needed. This structure makes the code easier to debug, tune, and expand.
+
+The robot uses encoder feedback to estimate wheel movement and distance traveled. This helps the system determine when it has moved far enough to transition from one section of the course to another. 
+Encoder measurements are especially useful in portions of the course where sensor feedback alone is not enough, such as controlled turns or arc traversal.
+
+---
+
+## Main Functional Components
+
+### Motor Control
+The motor control portion of the code is responsible for driving the left and right wheels. Motor effort values are sent to each motor driver so the robot can move forward, slow one wheel for turning, or perform corrective actions when it drifts away from the line.
+
+### Encoder Feedback
+Each motor is paired with an encoder that measures wheel rotation. Encoder readings are used to estimate speed and displacement, allowing the robot to make more reliable movement decisions and improve repeatability on the course.
+
+### Line Sensor Processing
+An array of line sensors reads the surface beneath the robot and determines where the line is relative to the center of the chassis. These readings are converted into an error value, which represents how far the robot is from the desired position on the line.
+
+### Closed-Loop Steering Control
+The line-following behavior uses feedback control to reduce tracking error. When the robot drifts to one side of the line, the controller adjusts the motor speeds to steer it back toward center. This allows smoother and more stable motion than simple on/off corrections.
+
+### Overall
+The overall behavior of the robot is managed by a finite state machine. This logic determines what the robot should do at different stages of the course, such as:
+- waiting for start
+- following the straight path
+- detecting checkpoints
+- navigating curved or arc sections
+- entering or crossing special course regions
+- reacquiring the line if it is briefly lost
+
+---
+
+## Software Organization
+The final system is organized into separate modules so that each part of the robot has a clear role. This makes the project easier to understand, maintain, and update if needed.
+
+---
+
+## Design Approach
+A major goal of the final code was reliability. Earlier versions of the robot could follow the line, but the final version improved consistency by separating the robot’s behavior into well-defined states and using sensor feedback more carefully. 
+Instead of relying on one large block of logic, the final code uses a structured approach in which each behavior is activated only when needed.
+
+This approach also made tuning easier. Motor control, line tracking, and course transitions could each be adjusted independently until the overall performance became more stable.
+
+---
+
+## Challenges and Improvements
+One of the main challenges in the project was making the robot behave consistently across different parts of the course. Small issues such as sensor noise, overshooting a thick line, or transitioning too early between states could cause the robot to leave the path or stop 
+unexpectedly.
+
+To improve performance, the final code was revised to:
+- better organize state transitions
+- use encoder-based distance checks where appropriate
+- improve line-following response
+- include recovery behavior when the line was lost
+- separate low-level motor control from high-level navigation logic
+
+These changes made the final system more robust and easier to troubleshoot.
+
+---
+
+## Final Outcome
+The completed robot demonstrates the successful integration of embedded hardware, feedback control, and autonomous decision-making. The final code is not just a collection of test scripts, but a complete working system that reflects the full design process of the project.
+
+This final implementation shows how the robot senses its environment, processes feedback, and reacts in real time to complete the course. It represents the culmination of the mechanical, electrical, and software work completed throughout the term.
+
+---
