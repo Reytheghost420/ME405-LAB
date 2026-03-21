@@ -99,7 +99,7 @@ After the line is detected again, the robot transitions back into line-following
 
 Following CP#2, the robot performs another right 90-degree turn using IMU heading feedback to align itself with the slalom section of the course. Once aligned, the robot re-enters line-following mode and navigates the curved slalom path using continuous sensor feedback. The oscillating path requires constant correction, and the PI controller adjusts motor speeds dynamically to maintain stability. The robot continues along the slalom until Checkpoints 3 and 4 are detected.
 
-During this section, the robot also monitors for a loss-of-line condition. If all sensors detect white (indicating that the robot has completely lost the line), the robot enters a recovery behavior. In this state, the robot performs a controlled 180-degree turn using IMU feedback to reorient itself. After completing the turn, it resumes searching for the line and continues along the correct path toward the starting checkpoint. 
+During this section, the robot also monitors for a loss-of-line condition. If all sensors detect white (indicating that there is a break in the line), the robot enters the post-checkpoint #4 state. In this state, the robot performs a controlled 180-degree turn using IMU feedback to reorient itself. After completing the turn, it resumes searching for the line and continues along the correct path toward the starting checkpoint. 
 
 All of these behaviors are coordinated using a finite state machine implemented in `task_course.py`. Each section of the course corresponds to a specific state, such as line following, turning, wall approach, or line reacquisition. Transitions between states are triggered using a combination of sensor thresholds, IMU heading data, and timing or distance-based conditions.
 
@@ -196,4 +196,4 @@ This project demonstrates the successful integration of embedded systems, sensor
 
 Throughout development, emphasis was placed on modular design and iterative testing. Separating motor control, sensor processing, and high-level navigation into distinct tasks allowed for easier debugging and tuning, ultimately leading to a more robust system.
 
-While minor tuning improvements can still be made, the final implementation meets the project objectives and performs consistently across multiple runs. This project highlights the importance of both software structure and real-world testing in developing reliable autonomous systems.
+While minor tuning improvements can still be made, the final implementation meets the project objectives and can complete the course, albeit not perfectly consistenctly. This project highlights the importance of both software structure and real-world testing in developing reliable autonomous systems.
