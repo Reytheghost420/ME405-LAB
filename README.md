@@ -96,15 +96,13 @@ Once aligned with the next section, the robot enters the garage approach state. 
 
 After the line is detected again, the robot transitions back into line-following mode. As it moves forward, it encounters a cross feature on the track. This feature is detected when several adjacent sensors simultaneously read black, indicating a wide line region rather than a standard narrow line. This condition is used to trigger the next transition. Shortly after the cross, Checkpoint 2 is detected using a similar sensor-based threshold.
 
-Following CP#2, the robot performs another right 90-degree turn using IMU heading feedback to align itself with the slalom section of the course. Once aligned, the robot re-enters line-following mode and navigates the curved slalom path using continuous sensor feedback. The oscillating path requires constant correction, and the PI controller adjusts motor speeds dynamically to maintain stability.
+Following CP#2, the robot performs another right 90-degree turn using IMU heading feedback to align itself with the slalom section of the course. Once aligned, the robot re-enters line-following mode and navigates the curved slalom path using continuous sensor feedback. The oscillating path requires constant correction, and the PI controller adjusts motor speeds dynamically to maintain stability. The robot continues along the slalom until Checkpoints 3 and 4 are detected.
 
-During this section, the robot also monitors for a loss-of-line condition. If all sensors detect white (indicating that the robot has completely lost the line), the robot enters a recovery behavior. In this state, the robot performs a controlled 180-degree turn using IMU feedback to reorient itself. After completing the turn, it resumes searching for the line and continues along the correct path toward the starting checkpoint. This recovery mechanism improves robustness by allowing the robot to correct major tracking errors without manual intervention.
-
-The robot continues along the slalom until Checkpoints 3 and 4 are detected, marking the completion of the course.
+During this section, the robot also monitors for a loss-of-line condition. If all sensors detect white (indicating that the robot has completely lost the line), the robot enters a recovery behavior. In this state, the robot performs a controlled 180-degree turn using IMU feedback to reorient itself. After completing the turn, it resumes searching for the line and continues along the correct path toward the starting checkpoint. 
 
 All of these behaviors are coordinated using a finite state machine implemented in `task_course.py`. Each section of the course corresponds to a specific state, such as line following, turning, wall approach, or line reacquisition. Transitions between states are triggered using a combination of sensor thresholds, IMU heading data, and timing or distance-based conditions.
 
-To improve reliability, the system prioritizes consistent execution over optional scoring features. Our team chose not to attempt the cup interaction in order to reduce variability and ensure successful completion of the primary course.
+It is important to note that our team chose not to attempt the cup interaction in order to reduce variability and ensure successful completion of the primary course.
 
 #### Video Demonstrations
 
