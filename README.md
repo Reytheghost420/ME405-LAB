@@ -50,6 +50,19 @@ https://github.com/user-attachments/assets/57b410ec-e20e-4d8b-ae99-a271f1de9f0f
 
 Full Resolution Link: https://youtu.be/C_g4VvyhMvY
 
+## Final Performance
+
+The robot successfully completed the full course, including:
+- straight line tracking
+- checkpoint detection
+- arc navigation after CP#1
+- garage approach and wall detection
+- line reacquisition after the wall
+- cross detection and continued tracking
+- slalom navigation
+
+The system demonstrated consistent performance across multiple runs, with only minor variation due to mechanical differences and sensor noise.
+
 
 ##### In Class Demonstration
 
