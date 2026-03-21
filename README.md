@@ -180,3 +180,11 @@ The mount was originally intended to connect to the chassis on both sides of the
 Both mounts were created in Fusion 360 using pubilcly available CAD models of the Romi chassis, infrared sensor, and ultrasonic sensor and then 3D printed out of PLA at the makerspace in Mustang 60.
 
 [Ultrasonic Sensor Mount Drawing v1.pdf](https://github.com/user-attachments/files/26132134/Ultrasonic.Sensor.Mount.Drawing.v1.pdf)
+
+## Conclusion
+
+This project demonstrates the successful integration of embedded systems, sensor feedback, and control algorithms to achieve reliable autonomous navigation. By combining line sensing, encoder feedback, and structured state-machine logic, the Romi robot is able to complete a complex course with minimal user input.
+
+Throughout development, emphasis was placed on modular design and iterative testing. Separating motor control, sensor processing, and high-level navigation into distinct tasks allowed for easier debugging and tuning, ultimately leading to a more robust system.
+
+While minor tuning improvements can still be made, the final implementation meets the project objectives and performs consistently across multiple runs. This project highlights the importance of both software structure and real-world testing in developing reliable autonomous systems.
