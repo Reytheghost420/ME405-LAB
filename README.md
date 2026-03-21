@@ -7,7 +7,6 @@ The final working implementation of the Romi robot can be found in:
 
 This folder contains the complete and tested code used for the final project demonstration.
 ## Code
-### Drivers
 
 ## How to Run the Code
 
@@ -19,7 +18,9 @@ This folder contains the complete and tested code used for the final project dem
 Optional:
 - Adjust calibration values in `calibration.py`
 - Tune control parameters in `task_course.py`
-  
+
+### Drivers
+
 #### Motor Driver
 This driver sets up the pin objects for the sleep and direction pins and a timer object for the PWM pin.
 
