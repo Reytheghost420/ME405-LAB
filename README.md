@@ -6,6 +6,58 @@ The final working implementation of the Romi robot can be found in:
 **`Final Demonstration/Final Version/`**
 
 This folder contains the complete and tested code used for the final project demonstration.
+
+## Reproducing This Project
+
+To recreate this system, the following hardware components were used:
+
+### Core Hardware
+- **Pololu Romi Chassis Kit** (with 6V DC motors and integrated encoders)
+- **ST Nucleo-L476RG Microcontroller** (running MicroPython)
+- **DRV8838 Motor Drivers** (for left and right motor control)
+
+### Sensors
+- **Pololu QTRX-7RC Reflectance Sensor Array (Part #4410 / similar QTRX series)**  
+  Used for line detection and position estimation
+
+- **HC-SR04 Ultrasonic Sensor**  
+  Used for wall detection in the garage section
+
+- **BNO055 IMU (Bosch Absolute Orientation Sensor)
+  Used for heading-based turns (e.g., 90° rotations)
+
+### Additional Components
+- Custom **3D printed mounts** for IR and ultrasonic sensors
+- Jumper wires and header pins for connections
+- External power source (battery pack for motors)
+
+---
+
+### Software Setup
+1. Install **MicroPython** on the Nucleo-L476RG board  
+2. Upload all files from the `Final Demonstration/Final Version/` folder to the board
+3. Ensure `main.py` is present on the device and runs on startup
+
+---
+
+### Calibration
+- Run `calibration.py` to collect black/white values for the line sensors  
+- Calibration values are stored in `calibration.txt`
+- Proper calibration is required for reliable line detection
+
+---
+
+### Operation
+1. Place the robot at the start of the course (Checkpoint 0)
+2. Power the robot
+3. The robot will begin execution automatically and follow the programmed course
+
+---
+
+### Notes
+- Performance may vary depending on surface conditions, lighting, and battery level
+- Fine tuning of parameters in `task_course.py` may be required for optimal performance
+  
 ## Code
 
 ## How to Run the Code
