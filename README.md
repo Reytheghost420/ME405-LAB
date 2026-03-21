@@ -1,4 +1,11 @@
 # ME 405 Romi Project
+## Final Code Location
+
+The final working implementation of the Romi robot can be found in:
+
+**`Final Demonstration/Final Version/`**
+
+This folder contains the complete and tested code used for the final project demonstration.
 ## Code
 ### Drivers
 
